@@ -15,6 +15,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import chromadb
 from rank_bm25 import BM25Okapi
+from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 
 log = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ class Retriever:
         self,
         chroma_dir: Optional[str] = None,
         collection: Optional[str] = None,
-        embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2",
+        embedding_model: str = "all-MiniLM-L6-v2",
     ) -> None:
         """
         Initialize a Chroma persistent client and get/create the target collection.
@@ -38,7 +39,7 @@ class Retriever:
         # Resolve configuration from args or environment.
         self.chroma_dir = chroma_dir or os.getenv("CHROMA_DIR") or "/data/index"
         self.collection = collection or os.getenv("CHROMA_COLLECTION") or "marp_docs"
-        self.embed_model = embedding_model
+        self.embed_model = embedding_model or "all-MiniLM-L6-v2"
 
         # Hybrid weighting: alpha * semantic + (1 - alpha) * bm25
         try:
@@ -56,10 +57,17 @@ class Retriever:
             self.hybrid_alpha,
         )
 
+        # Embedding function kept in sync with indexing-service 
+        self._embed_fn = SentenceTransformerEmbeddingFunction(
+            model_name=str(self.embed_model)
+        )
+
         # Create/get the persistent collection.
         self._pc = chromadb.PersistentClient(path=self.chroma_dir)
         self._coll = self._pc.get_or_create_collection(
-            self.collection, metadata={"hnsw:space": "cosine"}
+            self.collection,
+            metadata={"hnsw:space": "cosine"},
+            embedding_function=self._embed_fn,
         )
 
     # ---------------------------------------------------------------------
