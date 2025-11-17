@@ -90,7 +90,7 @@ logger = logging.getLogger("chat-service")
 
 # --- Config via env ----------------------------------------------------------
 RETRIEVAL_URL = os.getenv("RETRIEVAL_URL", "http://retrieval:8000")
-RETRIEVAL_MODE = os.getenv("RETRIEVAL_MODE", "semantic")
+RETRIEVAL_MODE = os.getenv("RETRIEVAL_MODE", "semantic") #needs to be "hybrid" after merging
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
 OPENROUTER_BASE = os.getenv("OPENROUTER_BASE", "https://openrouter.ai/api/v1")
@@ -206,7 +206,7 @@ async def _llm_answer(question: str, context_blocks: List[RetrievedChunk]) -> Di
     system_prompt = (
         "You are a MARP assistant answering questions for students and staff. "
         "Use only the supplied context snippets. "
-        "“Provide up to two sentences and cite sources as [1] and [2]. If only one source is relevant, still include [1]."
+        "Provide up to two sources and cite sources as [1] and [2]. If only one source is relevant, still include [1]."
         'If the context is insufficient, reply with "I\'m not certain. Source: not available."'
     )
 
@@ -247,11 +247,10 @@ async def _llm_answer(question: str, context_blocks: List[RetrievedChunk]) -> Di
         raise HTTPException(status_code=502, detail="LLM returned empty response")
 
     text = content.strip()
-    if "[1]" not in text:
-        # Defensive append: models occasionally omit the citation marker even
-        # when instructed.  Appending keeps the API contract ("answer ends with
-        # [1]")
-        text = f"{text} [1]".strip()
+    required_refs = min(2, len(citations))
+    for idx in range(1, required_refs + 1):
+        if f"[{idx}]" not in text:
+            text = f"{text} [{idx}]".strip()
 
     usage = data.get("usage") or {}
 

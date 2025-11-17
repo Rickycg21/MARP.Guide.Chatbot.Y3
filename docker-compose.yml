@@ -133,7 +133,8 @@ services:
       - DATA_ROOT=/data
       - LOG_LEVEL=INFO
       - ANSWERS_FILE=/data/answer_metadata.jsonl
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      #- OPENROUTER_API_KEY=${OPENROUTER_API_KEY} # If we decide to keep the key a seceret
+      - OPENROUTER_API_KEY=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
       - OPENROUTER_MODEL=openai/gpt-4o-mini
       - RETRIEVAL_URL=http://retrieval:8000
     ports:
