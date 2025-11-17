@@ -5,14 +5,16 @@ Provide a Basic Monitoring Dashboard (Tier 1 Feature) that aggregates service he
 It consumes all events produced by the RAG pipeline and exposes a small dashboard showing live system metrics.
 
 ## Data Owned
-- `/data/metrics/events.log` — append-only event log
-- `/data/metrics/counters.json` — aggregated service metrics (health_status{}, event_counts{}, avg_latency_ms{})
+- `/data/metrics/events.jsonl` — append-only event log
+- `/data/metrics/metrics.json` — aggregated service metrics snapshot  
+  (updated_at, event_counts{}, by_service{}, avg_latency_ms{}, indexing{}, requests{}, last_seen{}).
+
 
 ## API Endpoints
 | Method | Endpoint | Description | Returns |
 |---------|-----------|--------------|----------|
 | GET | `/metrics` | Return aggregated service metrics | 200 OK + JSON |
-| GET | `/monitor` | Simple web UI showing status per service | 200 OK + HTML |
+| GET | `/dashboard` | Simple web UI showing status per service | 200 OK + HTML |
 | GET | `/health` | Health check | 200 OK |
 
 ## Events

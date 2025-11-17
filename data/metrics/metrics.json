@@ -1,0 +1,15 @@
+{
+  "updatedAt": "2025-11-17T00:05:59.184215+00:00",
+  "eventCounts": {},
+  "byService": {},
+  "avgLatencyMs": {},
+  "indexing": {
+    "documentsIndexed": 0,
+    "chunksTotal": 0
+  },
+  "requests": {
+    "retrievalRequests": 0,
+    "chatRequests": 0
+  },
+  "lastSeen": {}
+}

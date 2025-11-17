@@ -33,7 +33,7 @@ Answers are retrieved from MARP PDF documents, properly cited (title + page + li
 | **Ingestion** | 5001 | Discover & download MARP PDFs | `DocumentDiscovered` | – |
 | **Extraction** | 5002 | Extract text from PDFs | `DocumentExtracted` | `DocumentDiscovered` |
 | **Indexing** | 5003 | Chunk text & create embeddings | `ChunksIndexed` | `DocumentExtracted` |
-| **Retrieval** | 5004 | Semantic search over vectors | `RetrievalCompleted` | `ChunksIndexed` |
+| **Retrieval** | 5004 | Semantic search over vectors | `RetrievalCompleted` | – |
 | **Chat (RAG)** | 5005 | Generate answers with citations | `AnswerGenerated` | – |
 | **Monitoring** | 5006 | Aggregate metrics & health | – | All events |
 
@@ -54,15 +54,17 @@ flowchart LR
     M[Monitoring :5006]
   end
 
-  subgraph Infra
+  subgraph Infrastructure
     Q[(RabbitMQ 5672/15672)]
     V[(Vector DB)]
   end
 
   %% Pipeline edges
   I -->|"DocumentDiscovered (event)"| E
+  I -->|"DocumentDiscovered (event)"| M
   E -->|"DocumentExtracted (event)"| X
-  X -->|"ChunksIndexed (event)"| R
+  E -->|"DocumentExtracted (event)"| M
+  X -->|"ChunksIndexed (event)"| M
   C <-->|"HTTP /search"| R
   U -->|"HTTP POST /chat"| C
   C -->|"AnswerGenerated (event)"| M
