@@ -18,10 +18,12 @@ import os
 import time
 import uuid
 from dataclasses import dataclass
+import textwrap
 from typing import Any, Dict, List, Optional, Tuple
 
 import httpx
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 try:
@@ -408,10 +410,214 @@ def _append_answer_metadata(record: Dict[str, Any]) -> None:
 # --- FastAPI app -------------------------------------------------------------
 app = FastAPI(title="MARP-Guide Chat Service")
 
+UI_HTML = textwrap.dedent(
+    """
+    <!doctype html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>MARP Chat</title>
+      <style>
+        :root { color-scheme: light dark; }
+        body {
+          margin: 0;
+          font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+          background: #0f172a;
+          color: #e2e8f0;
+          min-height: 100vh;
+        }
+        .page {
+          max-width: 920px;
+          margin: 0 auto;
+          padding: 32px 20px 48px;
+        }
+        header { margin-bottom: 20px; }
+        h1 { margin: 0 0 6px; font-size: 24px; }
+        p { margin: 4px 0; color: #cbd5e1; }
+        .card {
+          background: #0b1224;
+          border: 1px solid #1e293b;
+          border-radius: 14px;
+          padding: 18px;
+          box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+        }
+        label { display: block; margin: 12px 0 6px; font-weight: 600; }
+        textarea, input[type=number] {
+          width: 100%;
+          background: #0f172a;
+          color: #e2e8f0;
+          border: 1px solid #1f2937;
+          border-radius: 10px;
+          padding: 12px;
+          font-size: 16px;
+          box-sizing: border-box;
+        }
+        textarea { min-height: 120px; resize: vertical; }
+        .actions {
+          margin-top: 14px;
+          display: flex;
+          gap: 10px;
+          align-items: center;
+        }
+        button {
+          background: linear-gradient(90deg, #2563eb, #7c3aed);
+          color: white;
+          border: none;
+          padding: 12px 18px;
+          border-radius: 10px;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 6px 18px rgba(37,99,235,0.35);
+        }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .status { color: #93c5fd; font-size: 14px; }
+        .answer-block { margin-top: 20px; }
+        .answer { font-size: 17px; line-height: 1.6; white-space: pre-wrap; }
+        .meta { margin-top: 10px; color: #94a3b8; font-size: 14px; }
+        .pill {
+          display: inline-block;
+          padding: 4px 10px;
+          margin: 4px 6px 0 0;
+          background: #111827;
+          border: 1px solid #1e293b;
+          border-radius: 999px;
+          font-size: 13px;
+        }
+        .citations { margin-top: 14px; }
+        .citation {
+          padding: 10px;
+          border-radius: 10px;
+          background: #0f172a;
+          border: 1px solid #1e293b;
+          margin-bottom: 10px;
+        }
+        a { color: #60a5fa; }
+      </style>
+    </head>
+    <body>
+      <div class="page">
+        <header>
+          <h1>MARP Chat</h1>
+          <p>Ask questions about Lancaster University&#39;s MARP. Replies use the existing /chat API with citations.</p>
+        </header>
+
+        <div class="card">
+          <form id="chat-form">
+            <label for="question">Question</label>
+            <textarea id="question" name="question" required minlength="3" placeholder="e.g., How many days do I have to submit an appeal?"></textarea>
+
+            <label for="top-k">Sources to retrieve (1-10)</label>
+            <input id="top-k" name="top_k" type="number" min="1" max="10" value="5" />
+
+            <div class="actions">
+              <button id="submit-btn" type="submit">Ask</button>
+              <div id="status" class="status"></div>
+            </div>
+          </form>
+
+          <div class="answer-block">
+            <div class="pill" id="latency">Latency: –</div>
+            <div class="pill" id="model">Model: –</div>
+            <div class="pill" id="correlation">Correlation ID: –</div>
+            <div class="answer" id="answer"></div>
+            <div class="citations" id="citations"></div>
+            <div class="meta" id="meta"></div>
+          </div>
+        </div>
+      </div>
+
+      <script>
+        const form = document.getElementById("chat-form");
+        const questionEl = document.getElementById("question");
+        const topkEl = document.getElementById("top-k");
+        const submitBtn = document.getElementById("submit-btn");
+        const statusEl = document.getElementById("status");
+        const answerEl = document.getElementById("answer");
+        const citationsEl = document.getElementById("citations");
+        const metaEl = document.getElementById("meta");
+        const latencyEl = document.getElementById("latency");
+        const modelEl = document.getElementById("model");
+        const correlationEl = document.getElementById("correlation");
+
+        const renderCitations = (citations = []) => {
+          if (!citations.length) {
+            citationsEl.innerHTML = "<div class=\\"meta\\">No citations returned.</div>";
+            return;
+          }
+          citationsEl.innerHTML = citations
+            .map((c, idx) => {
+              const page = c.page !== null && c.page !== undefined ? ` (p.${c.page})` : "";
+              const link = c.url ? ` <a href=\\"${c.url}\\" target=\\"_blank\\" rel=\\"noreferrer\\">open</a>` : "";
+              return `<div class=\\"citation\\"><strong>[${idx + 1}] ${c.title || "Source"}</strong>${page}${link}</div>`;
+            })
+            .join("");
+        };
+
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const question = questionEl.value.trim();
+          const top_k = Number(topkEl.value) || 5;
+          if (question.length < 3) {
+            statusEl.textContent = "Please enter a longer question.";
+            return;
+          }
+
+          submitBtn.disabled = true;
+          statusEl.textContent = "Thinking...";
+          answerEl.textContent = "";
+          metaEl.textContent = "";
+          citationsEl.innerHTML = "";
+
+          try {
+            const response = await fetch("/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ question, top_k })
+            });
+
+            if (!response.ok) {
+              const detail = await response.text();
+              throw new Error(`Request failed (${response.status}): ${detail}`);
+            }
+
+            const data = await response.json();
+            answerEl.textContent = data.answer || "";
+            renderCitations(data.citations || []);
+            latencyEl.textContent = `Latency: ${data.latency_ms ?? "n/a"} ms`;
+            modelEl.textContent = `Model: ${data.model || "n/a"}`;
+            correlationEl.textContent = `Correlation ID: ${data.correlation_id || "n/a"}`;
+
+            const tokens = data.tokens_used !== null && data.tokens_used !== undefined ? `${data.tokens_used} tokens` : "tokens: n/a";
+            metaEl.textContent = `${tokens}`;
+            statusEl.textContent = "Done.";
+          } catch (err) {
+            statusEl.textContent = err.message || "Something went wrong.";
+            answerEl.textContent = "";
+            citationsEl.innerHTML = "";
+            metaEl.textContent = "";
+            latencyEl.textContent = "Latency: n/a";
+            modelEl.textContent = "Model: n/a";
+            correlationEl.textContent = "Correlation ID: n/a";
+          } finally {
+            submitBtn.disabled = false;
+          }
+        });
+      </script>
+    </body>
+    </html>
+    """
+).strip()
+
 
 @app.get("/health")
 def health() -> Dict[str, str]:
     return {"status": "ok", "service": settings.service_name}
+
+
+@app.get("/", response_class=HTMLResponse)
+async def ui() -> HTMLResponse:
+    return HTMLResponse(content=UI_HTML, status_code=200)
 
 
 @app.post("/chat", response_model=ChatResponse)
