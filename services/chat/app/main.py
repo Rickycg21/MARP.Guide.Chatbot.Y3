@@ -419,78 +419,112 @@ UI_HTML = textwrap.dedent(
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <title>MARP Chat</title>
       <style>
-        :root { color-scheme: light dark; }
+        :root { color-scheme: dark; }
         body {
           margin: 0;
-          font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-          background: #0f172a;
+          font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+          background: #0b1224;
           color: #e2e8f0;
           min-height: 100vh;
         }
         .page {
-          max-width: 920px;
+          max-width: 1000px;
           margin: 0 auto;
           padding: 32px 20px 48px;
         }
-        header { margin-bottom: 20px; }
-        h1 { margin: 0 0 6px; font-size: 24px; }
+        header { margin-bottom: 18px; }
+        h1 { margin: 0 0 6px; font-size: 26px; letter-spacing: 0.5px; }
         p { margin: 4px 0; color: #cbd5e1; }
-        .card {
-          background: #0b1224;
+        .panel {
+          background: #0f172a;
           border: 1px solid #1e293b;
           border-radius: 14px;
           padding: 18px;
           box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+          margin-bottom: 16px;
         }
-        label { display: block; margin: 12px 0 6px; font-weight: 600; }
-        textarea, input[type=number] {
+        label { display: block; margin: 0 0 8px; font-weight: 700; }
+        textarea {
           width: 100%;
-          background: #0f172a;
+          background: #0b162d;
           color: #e2e8f0;
           border: 1px solid #1f2937;
           border-radius: 10px;
           padding: 12px;
           font-size: 16px;
           box-sizing: border-box;
+          min-height: 110px;
+          resize: vertical;
         }
-        textarea { min-height: 120px; resize: vertical; }
         .actions {
-          margin-top: 14px;
+          margin-top: 12px;
           display: flex;
           gap: 10px;
           align-items: center;
         }
         button {
-          background: linear-gradient(90deg, #2563eb, #7c3aed);
-          color: white;
+          background: linear-gradient(90deg, #2563eb, #22d3ee);
+          color: #0b1224;
           border: none;
           padding: 12px 18px;
           border-radius: 10px;
-          font-weight: 700;
+          font-weight: 800;
           cursor: pointer;
-          box-shadow: 0 6px 18px rgba(37,99,235,0.35);
+          box-shadow: 0 8px 24px rgba(34, 211, 238, 0.35);
         }
         button:disabled { opacity: 0.6; cursor: not-allowed; }
         .status { color: #93c5fd; font-size: 14px; }
-        .answer-block { margin-top: 20px; }
-        .answer { font-size: 17px; line-height: 1.6; white-space: pre-wrap; }
-        .meta { margin-top: 10px; color: #94a3b8; font-size: 14px; }
-        .pill {
-          display: inline-block;
-          padding: 4px 10px;
-          margin: 4px 6px 0 0;
-          background: #111827;
+        .board {
+          background: #0d1427;
           border: 1px solid #1e293b;
-          border-radius: 999px;
-          font-size: 13px;
-        }
-        .citations { margin-top: 14px; }
-        .citation {
+          border-radius: 16px;
           padding: 10px;
-          border-radius: 10px;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+          max-height: 70vh;
+          overflow-y: auto;
+        }
+        .empty { text-align: center; padding: 24px; color: #94a3b8; }
+        .msg {
+          display: grid;
+          grid-template-columns: 70px 1fr;
+          gap: 10px;
+          padding: 12px;
+          border-bottom: 1px solid #1f2937;
+        }
+        .msg:last-child { border-bottom: none; }
+        .role {
+          font-weight: 800;
+          color: #a5b4fc;
+          text-transform: uppercase;
+          font-size: 12px;
+          letter-spacing: 0.5px;
+        }
+        .role.user { color: #60a5fa; }
+        .bubble {
           background: #0f172a;
           border: 1px solid #1e293b;
-          margin-bottom: 10px;
+          border-radius: 12px;
+          padding: 12px 14px;
+          line-height: 1.5;
+          white-space: pre-wrap;
+        }
+        .msg.user .bubble { background: #0b162d; border-color: #1d4ed8; }
+        .msg.bot .bubble { background: #0f172a; border-color: #1f2937; }
+        .badges { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .badge {
+          padding: 4px 10px;
+          border-radius: 999px;
+          border: 1px solid #1f2937;
+          background: #0b162d;
+          color: #cbd5e1;
+          font-size: 12px;
+        }
+        .citations { margin-top: 10px; }
+        .citation {
+          display: block;
+          margin: 4px 0;
+          color: #a5b4fc;
+          font-size: 14px;
         }
         a { color: #60a5fa; }
       </style>
@@ -499,81 +533,96 @@ UI_HTML = textwrap.dedent(
       <div class="page">
         <header>
           <h1>MARP Chat</h1>
-          <p>Ask questions about Lancaster University&#39;s MARP. Replies use the existing /chat API with citations.</p>
+          <p>Ask questions about Lancaster University&#39;s MARP. Messages stack like a board so you can see prior Q&A.</p>
         </header>
 
-        <div class="card">
-          <form id="chat-form">
-            <label for="question">Question</label>
+        <div class="panel">
+          <form id="chat-form" method="post" action="#">
+            <label for="question">Ask MARP</label>
             <textarea id="question" name="question" required minlength="3" placeholder="e.g., How many days do I have to submit an appeal?"></textarea>
-
-            <label for="top-k">Sources to retrieve (1-10)</label>
-            <input id="top-k" name="top_k" type="number" min="1" max="10" value="5" />
-
             <div class="actions">
-              <button id="submit-btn" type="submit">Ask</button>
+              <button id="submit-btn" type="submit">Send</button>
               <div id="status" class="status"></div>
             </div>
           </form>
+        </div>
 
-          <div class="answer-block">
-            <div class="pill" id="latency">Latency: –</div>
-            <div class="pill" id="model">Model: –</div>
-            <div class="pill" id="correlation">Correlation ID: –</div>
-            <div class="answer" id="answer"></div>
-            <div class="citations" id="citations"></div>
-            <div class="meta" id="meta"></div>
-          </div>
+        <div class="board" id="board">
+          <div class="empty">No messages yet. Ask your first question.</div>
         </div>
       </div>
 
       <script>
         const form = document.getElementById("chat-form");
         const questionEl = document.getElementById("question");
-        const topkEl = document.getElementById("top-k");
         const submitBtn = document.getElementById("submit-btn");
         const statusEl = document.getElementById("status");
-        const answerEl = document.getElementById("answer");
-        const citationsEl = document.getElementById("citations");
-        const metaEl = document.getElementById("meta");
-        const latencyEl = document.getElementById("latency");
-        const modelEl = document.getElementById("model");
-        const correlationEl = document.getElementById("correlation");
+        const board = document.getElementById("board");
 
-        const renderCitations = (citations = []) => {
-          if (!citations.length) {
-            citationsEl.innerHTML = "<div class=\\"meta\\">No citations returned.</div>";
-            return;
+        const clearEmpty = () => {
+          const empty = board.querySelector(".empty");
+          if (empty) empty.remove();
+        };
+
+        const addMessage = (role, text, meta = {}) => {
+          clearEmpty();
+          const wrap = document.createElement("div");
+          wrap.className = `msg ${role}`;
+
+          const roleEl = document.createElement("div");
+          roleEl.className = `role ${role}`;
+          roleEl.textContent = role === "user" ? "You" : "Assistant";
+
+          const bubble = document.createElement("div");
+          bubble.className = "bubble";
+          bubble.innerHTML = (text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\\n/g, "<br>");
+
+          if (meta.citations && meta.citations.length) {
+            const list = document.createElement("div");
+            list.className = "citations";
+            list.innerHTML = meta.citations
+              .map((c, idx) => {
+                const page = c.page !== null && c.page !== undefined ? ` (p.${c.page})` : "";
+                const link = c.url ? ` <a href=\\"${c.url}\\" target=\\"_blank\\" rel=\\"noreferrer\\">open</a>` : "";
+                return `<span class="citation">[${idx + 1}] ${c.title || "Source"}${page}${link}</span>`;
+              })
+              .join("");
+            bubble.appendChild(list);
           }
-          citationsEl.innerHTML = citations
-            .map((c, idx) => {
-              const page = c.page !== null && c.page !== undefined ? ` (p.${c.page})` : "";
-              const link = c.url ? ` <a href=\\"${c.url}\\" target=\\"_blank\\" rel=\\"noreferrer\\">open</a>` : "";
-              return `<div class=\\"citation\\"><strong>[${idx + 1}] ${c.title || "Source"}</strong>${page}${link}</div>`;
-            })
-            .join("");
+
+          if (meta.latency || meta.model || meta.correlation || meta.tokens) {
+            const badges = document.createElement("div");
+            badges.className = "badges";
+            if (meta.latency) badges.innerHTML += `<span class="badge">Latency: ${meta.latency} ms</span>`;
+            if (meta.model) badges.innerHTML += `<span class="badge">Model: ${meta.model}</span>`;
+            if (meta.tokens) badges.innerHTML += `<span class="badge">Tokens: ${meta.tokens}</span>`;
+            if (meta.correlation) badges.innerHTML += `<span class="badge">Corr ID: ${meta.correlation}</span>`;
+            bubble.appendChild(badges);
+          }
+
+          wrap.appendChild(roleEl);
+          wrap.appendChild(bubble);
+          board.appendChild(wrap);
+          board.scrollTop = board.scrollHeight;
         };
 
         form.addEventListener("submit", async (event) => {
           event.preventDefault();
           const question = questionEl.value.trim();
-          const top_k = Number(topkEl.value) || 5;
           if (question.length < 3) {
             statusEl.textContent = "Please enter a longer question.";
             return;
           }
 
+          addMessage("user", question);
           submitBtn.disabled = true;
           statusEl.textContent = "Thinking...";
-          answerEl.textContent = "";
-          metaEl.textContent = "";
-          citationsEl.innerHTML = "";
 
           try {
             const response = await fetch("/chat", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ question, top_k })
+              body: JSON.stringify({ question })
             });
 
             if (!response.ok) {
@@ -582,23 +631,18 @@ UI_HTML = textwrap.dedent(
             }
 
             const data = await response.json();
-            answerEl.textContent = data.answer || "";
-            renderCitations(data.citations || []);
-            latencyEl.textContent = `Latency: ${data.latency_ms ?? "n/a"} ms`;
-            modelEl.textContent = `Model: ${data.model || "n/a"}`;
-            correlationEl.textContent = `Correlation ID: ${data.correlation_id || "n/a"}`;
-
-            const tokens = data.tokens_used !== null && data.tokens_used !== undefined ? `${data.tokens_used} tokens` : "tokens: n/a";
-            metaEl.textContent = `${tokens}`;
-            statusEl.textContent = "Done.";
+            addMessage("bot", data.answer || "No answer returned.", {
+              citations: data.citations || [],
+              latency: data.latency_ms ?? null,
+              model: data.model || null,
+              tokens: data.tokens_used !== null && data.tokens_used !== undefined ? data.tokens_used : null,
+              correlation: data.correlation_id || null,
+            });
+            statusEl.textContent = "Done";
+            questionEl.value = "";
           } catch (err) {
             statusEl.textContent = err.message || "Something went wrong.";
-            answerEl.textContent = "";
-            citationsEl.innerHTML = "";
-            metaEl.textContent = "";
-            latencyEl.textContent = "Latency: n/a";
-            modelEl.textContent = "Model: n/a";
-            correlationEl.textContent = "Correlation ID: n/a";
+            addMessage("bot", `Error: ${err.message || "Unknown error."}`);
           } finally {
             submitBtn.disabled = false;
           }
