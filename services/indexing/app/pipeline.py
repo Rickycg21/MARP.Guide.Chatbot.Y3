@@ -15,6 +15,7 @@ import chromadb
 import datetime
 import json
 import tiktoken
+import os
 
 # Load the embedding model used for document chunk encoding
 model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -296,9 +297,13 @@ def generate_embeddings(chunks):
     print(f"[Indexing] Generated {len(chunks)} embeddings")
     return chunks
 
-# ChromaDB setup 
-client = chromadb.PersistentClient(path=INDEX_DIR)
-collection = client.get_or_create_collection("marp_docs")
+# Skip Chroma initialization during unit tests
+if os.getenv("PYTEST_DISABLE_CHROMA") == "1":
+    client = None
+    collection = None
+else:
+    client = chromadb.PersistentClient(path=INDEX_DIR)
+    collection = client.get_or_create_collection(name="marp-index")
 
 def store_embeddings(document_id: str, chunks):
 
