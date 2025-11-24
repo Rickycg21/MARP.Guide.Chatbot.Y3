@@ -18,10 +18,10 @@ from typing import List
 
 from fastapi import FastAPI
 
-from common.config import settings
-from common.events import new_event, publish_event
-from .crawler import discover_and_download
-from .models import DiscoverResponse, DocumentRecord, DocumentsList
+from services.ingestion.common.config import settings
+from services.ingestion.common.events import new_event, publish_event
+from services.ingestion.app.crawler import discover_and_download
+from services.ingestion.app.models import DiscoverResponse, DocumentRecord, DocumentsList
 
 app = FastAPI(title="Ingestion Service")
 logger = logging.getLogger("ingestion")

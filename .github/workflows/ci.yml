@@ -52,11 +52,15 @@ jobs:
 
       - name: Run Integration Tests
         run: |
+          
           export INDEX_DIR=/tmp/index
           mkdir -p /tmp/index
 
           export DATA_ROOT=/tmp/data
+          mkdir -p /tmp/data
           mkdir -p /tmp/data/text
+
+          rm -f /tmp/data/pdf_metadata.jsonl
 
           export METADATA_PATH=/tmp/index_metadata.jsonl
 
