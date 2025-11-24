@@ -1,6 +1,12 @@
 import pytest
+import sys
 from pathlib import Path
 from fastapi.testclient import TestClient
+
+# --- FIX IMPORT COLLISION ---
+SERVICE_ROOT = Path(__file__).resolve().parents[3] / "services" / "indexing"
+sys.path.insert(0, str(SERVICE_ROOT))
+# ----------------------------
 
 from services.indexing.app.main import app
 from services.indexing.common.config import settings

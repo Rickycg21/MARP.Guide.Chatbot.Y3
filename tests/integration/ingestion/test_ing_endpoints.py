@@ -1,10 +1,16 @@
-import pytest
+import sys
 from pathlib import Path
+import pytest
 from fastapi.testclient import TestClient
 
-# Correct imports now that we use namespace packages
+# --- FIX IMPORT COLLISION ---
+SERVICE_ROOT = Path(__file__).resolve().parents[3] / "services" / "ingestion"
+sys.path.insert(0, str(SERVICE_ROOT))
+# ----------------------------------------
+
 from services.ingestion.app.main import app
 from services.ingestion.common.config import settings
+
 
 client = TestClient(app)
 

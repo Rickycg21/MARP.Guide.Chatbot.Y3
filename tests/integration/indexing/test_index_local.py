@@ -1,6 +1,12 @@
 import pytest
+import sys
 from pathlib import Path
 import numpy as np
+
+# --- FIX IMPORT COLLISION ---
+SERVICE_ROOT = Path(__file__).resolve().parents[3] / "services" / "indexing"
+sys.path.insert(0, str(SERVICE_ROOT))
+# ----------------------------
 
 from services.indexing.app.pipeline import manual_index_document, collection
 

@@ -1,11 +1,18 @@
+import sys
+from pathlib import Path
 import json
 import pytest
-from pathlib import Path
 from fastapi.testclient import TestClient
+
+# --- FIX IMPORT COLLISION ---
+SERVICE_ROOT = Path(__file__).resolve().parents[3] / "services" / "ingestion"
+sys.path.insert(0, str(SERVICE_ROOT))
+# ----------------------------------------
 
 from services.ingestion.app.main import app
 from services.ingestion.common.config import settings
 import services.ingestion.app.main as main_module
+
 
 client = TestClient(app)
 
