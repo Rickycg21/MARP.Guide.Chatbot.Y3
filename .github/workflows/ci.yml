@@ -28,6 +28,16 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ hashFiles('services/**/requirements.txt') }}
+
+      - name: Install lightweight CPU-only PyTorch
+        run: |
+          pip install torch --no-cache-dir --index-url https://download.pytorch.org/whl/cpu   
+
       - name: Install dependencies (all services)
         run: |
           python -m pip install --upgrade pip
@@ -39,11 +49,6 @@ jobs:
           done
 
           pip install pytest pytest-asyncio anyio
-
-      - name: Configure test environment
-        run: |
-          export DATA_ROOT=/tmp/data
-          mkdir -p /tmp/data
 
       - name: Run Unit Tests
         run: |
@@ -57,7 +62,6 @@ jobs:
           mkdir -p /tmp/index
 
           export DATA_ROOT=/tmp/data
-          mkdir -p /tmp/data
           mkdir -p /tmp/data/text
 
           rm -f /tmp/data/pdf_metadata.jsonl
@@ -65,7 +69,6 @@ jobs:
           export METADATA_PATH=/tmp/index_metadata.jsonl
 
           pytest tests/integration -v
-
 
   docker-services:
     name: Docker Containers Health Checks
