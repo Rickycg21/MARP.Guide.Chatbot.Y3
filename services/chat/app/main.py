@@ -98,12 +98,12 @@ OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
 OPENROUTER_BASE = os.getenv("OPENROUTER_BASE", "https://openrouter.ai/api/v1")
 
 try:
-    _cit_limit_env = int(os.getenv("CHAT_CITATION_LIMIT", "5"))
+    _cit_limit_env = int(os.getenv("CHAT_CITATION_LIMIT", "3"))
 except ValueError:
-    _cit_limit_env = 5
+    _cit_limit_env = 3
 # Control how many retrieval snippets are forwarded to the LLM as citations.
-# Clamp to 2–5 so answers carry at least two sources when available.
-CITATION_LIMIT = min(5, max(2, _cit_limit_env))
+# Clamp to 2–3 so answers carry at least two sources when available.
+CITATION_LIMIT = min(3, max(2, _cit_limit_env))
 
 # --- Data locations ----------------------------------------------------------
 DATA_DIR = settings.data_root
@@ -208,7 +208,7 @@ async def _llm_answer(question: str, context_blocks: List[RetrievedChunk]) -> Di
     system_prompt = (
         "You are a MARP assistant answering questions for students and staff. "
         "Use only the supplied context snippets. "
-        "Provide 2-5 sources when available and cite them as [1], [2], [3], [4], [5] in-line. "
+        "Provide 2-3 sources when available and cite them as [1], [2], [3] in-line. "
         "If fewer than two sources are relevant, cite all available. "
         "If at least one snippet is relevant, you must produce a grounded answer using those snippets. "
         "Do not respond with uncertainty if any snippet is relevant; give the best concise answer supported by the snippets."
@@ -219,7 +219,7 @@ async def _llm_answer(question: str, context_blocks: List[RetrievedChunk]) -> Di
         f"Context:\n{context_text}\n\n"
         "Respond concisely (1-3 sentences), grounded entirely in the context. "
         "If any snippet mentions a rule, timeframe, or deadline relevant to the question, state it plainly. "
-        "Include inline markers [1], [2], [3], [4], [5] for each cited snippet you use (at least two when available). "
+        "Include inline markers [1], [2], [3] for each cited snippet you use (at least two when available). "
         "If information is partial, still provide the best grounded answer and cite the relevant snippets."
     )
 
