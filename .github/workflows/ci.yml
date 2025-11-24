@@ -7,6 +7,7 @@ on:
       - main
       - develop
       - feature/ci.yml
+      - feature/testing
       
   pull_request:
     branches:
