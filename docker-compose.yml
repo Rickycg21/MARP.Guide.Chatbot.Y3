@@ -134,7 +134,7 @@ services:
       - LOG_LEVEL=INFO
       - ANSWERS_FILE=/data/answer_metadata.jsonl
       #- OPENROUTER_API_KEY=${OPENROUTER_API_KEY} # If we decide to keep the key a seceret
-      - OPENROUTER_API_KEY=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
+      - OPENROUTER_API_KEY=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
       - OPENROUTER_MODEL=openai/gpt-4o-mini
       - RETRIEVAL_URL=http://retrieval:8000
     ports:
