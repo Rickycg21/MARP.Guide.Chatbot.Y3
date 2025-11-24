@@ -208,16 +208,19 @@ async def _llm_answer(question: str, context_blocks: List[RetrievedChunk]) -> Di
     system_prompt = (
         "You are a MARP assistant answering questions for students and staff. "
         "Use only the supplied context snippets. "
-        "Provide 2–5 sources when available and cite them as [1], [2], [3], [4], [5] in-line. "
+        "Provide 2-5 sources when available and cite them as [1], [2], [3], [4], [5] in-line. "
         "If fewer than two sources are relevant, cite all available. "
-        'If the context is insufficient, reply with "I\'m not certain. Source: not available."'
+        "If at least one snippet is relevant, you must produce a grounded answer using those snippets. "
+        "Do not respond with uncertainty if any snippet is relevant; give the best concise answer supported by the snippets."
     )
 
     user_prompt = (
         f"Question: {question.strip()}\n\n"
         f"Context:\n{context_text}\n\n"
-        "Respond concisely, grounded entirely in the context. "
-        "Include inline markers [1], [2], [3], [4], [5] for each cited snippet you use (at least two when available)."
+        "Respond concisely (1-3 sentences), grounded entirely in the context. "
+        "If any snippet mentions a rule, timeframe, or deadline relevant to the question, state it plainly. "
+        "Include inline markers [1], [2], [3], [4], [5] for each cited snippet you use (at least two when available). "
+        "If information is partial, still provide the best grounded answer and cite the relevant snippets."
     )
 
     headers = {
@@ -742,3 +745,4 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
