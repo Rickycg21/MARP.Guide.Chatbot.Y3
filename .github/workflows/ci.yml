@@ -15,6 +15,33 @@ on:
       - develop
 
 jobs:
+  tests:
+    name: Run Pytest Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          
+          # Install indexing service dependencies for now only, add others as needed
+          pip install -r services/indexing/requirements.txt
+          pip install pytest pytest-asyncio anyio
+
+      - name: Run Unit Tests
+        run: pytest tests/unit/indexing -v
+
+      - name: Run Integration Tests
+        run: pytest tests/integration/indexing -v
+
   docker-services:
     runs-on: ubuntu-latest
 
