@@ -98,12 +98,12 @@ OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
 OPENROUTER_BASE = os.getenv("OPENROUTER_BASE", "https://openrouter.ai/api/v1")
 
 try:
-    _cit_limit_env = int(os.getenv("CHAT_CITATION_LIMIT", "1"))
+    _cit_limit_env = int(os.getenv("CHAT_CITATION_LIMIT", "5"))
 except ValueError:
-    _cit_limit_env = 1
-# 1 citation limit controls how many retrieval snippets
-# are forwarded to gpt. Increase it later
-CITATION_LIMIT = max(2, _cit_limit_env)
+    _cit_limit_env = 5
+# Control how many retrieval snippets are forwarded to the LLM as citations.
+# Clamp to 2–5 so answers carry at least two sources when available.
+CITATION_LIMIT = min(5, max(2, _cit_limit_env))
 
 # --- Data locations ----------------------------------------------------------
 DATA_DIR = settings.data_root
@@ -142,8 +142,8 @@ class ChatResponse(BaseModel):
 
 
 def _select_context(chunks: List[RetrievedChunk]) -> List[RetrievedChunk]:
-    # picks subset of retrieved chunks that will be turned into citations
-    # single chunk for now, change later for multiple citations per answer.
+    # Picks subset of retrieved chunks that will be turned into citations.
+    # Aim for up to CITATION_LIMIT snippets; if fewer exist, use all.
     return chunks[:CITATION_LIMIT] if chunks else []
 
 # --- OpenRouter call ---------------------------------------------------------
@@ -208,7 +208,8 @@ async def _llm_answer(question: str, context_blocks: List[RetrievedChunk]) -> Di
     system_prompt = (
         "You are a MARP assistant answering questions for students and staff. "
         "Use only the supplied context snippets. "
-        "Provide up to two sources and cite sources as [1] and [2]. If only one source is relevant, still include [1]."
+        "Provide 2–5 sources when available and cite them as [1], [2], [3], [4], [5] in-line. "
+        "If fewer than two sources are relevant, cite all available. "
         'If the context is insufficient, reply with "I\'m not certain. Source: not available."'
     )
 
@@ -216,7 +217,7 @@ async def _llm_answer(question: str, context_blocks: List[RetrievedChunk]) -> Di
         f"Question: {question.strip()}\n\n"
         f"Context:\n{context_text}\n\n"
         "Respond concisely, grounded entirely in the context. "
-        "Include the citation marker [1] once, pointing to the most relevant context line."
+        "Include inline markers [1], [2], [3], [4], [5] for each cited snippet you use (at least two when available)."
     )
 
     headers = {
@@ -249,7 +250,9 @@ async def _llm_answer(question: str, context_blocks: List[RetrievedChunk]) -> Di
         raise HTTPException(status_code=502, detail="LLM returned empty response")
 
     text = content.strip()
-    required_refs = min(2, len(citations))
+    # Ensure the response carries citation markers for the snippets we sent.
+    # Use up to CITATION_LIMIT, but try to include at least two markers when available.
+    required_refs = len(citations) if len(citations) < 2 else min(CITATION_LIMIT, len(citations))
     for idx in range(1, required_refs + 1):
         if f"[{idx}]" not in text:
             text = f"{text} [{idx}]".strip()
