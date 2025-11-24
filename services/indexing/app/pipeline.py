@@ -318,12 +318,15 @@ def store_embeddings(document_id: str, chunks):
         except Exception:
             page_value = 1  
 
+        title_value = c.get("title") or ""
+        url_value = c.get("url") or ""
+
         # Metadata attached to each chunk for search and traceability
         metadatas.append({
             "document_id": c.get("document_id", document_id),
             "chunk_id": c["chunkId"],
-            "title": c.get("title"),
-            "url": c.get("url"),
+            "title": title_value,
+            "url": url_value,
             "page": page_value
         })
 

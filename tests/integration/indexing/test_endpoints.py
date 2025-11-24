@@ -2,9 +2,9 @@ import pytest
 from pathlib import Path
 from fastapi.testclient import TestClient
 
-# Imports correctos para el servicio indexing
-from services.indexing.app.main import app
-from services.indexing.common.config import settings
+#Imports work because conftest.py injects the correct service root
+from app.main import app
+from common.config import settings
 
 """
 Two DeprecationWarnings appear during tests because FastAPI's 'on_event'
@@ -33,10 +33,18 @@ def setup_test_text_file():
         test_file.unlink()
         print(f"[TEST] Deleted test file: {test_file}")
 
-
-# Inicializar el TestClient DESPUÉS del fixture
+#Instantiate the TestClient with the FastAPI app
 client = TestClient(app)
 
+def test_health_endpoint():
+    """
+    Verify that GET /health returns the expected service health status.
+    """
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+
+    print("[TEST] /health passed ✓ - service is healthy")
 
 def test_index_document_endpoint():
     """
