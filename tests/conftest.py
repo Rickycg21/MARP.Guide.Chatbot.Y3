@@ -1,3 +1,4 @@
+''''
 import sys
 from pathlib import Path
 
@@ -24,3 +25,4 @@ for service in SERVICE_NAMES:
         print(f"[PYTEST] Added to PYTHONPATH: {service_root}")
     else:
         print(f"[PYTEST] WARNING: service not found: {service_root}")
+'''''
