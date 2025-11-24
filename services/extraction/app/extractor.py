@@ -56,7 +56,7 @@ def extract_to_text(doc_id: str) -> Tuple[str, int, int]:
     # Open both files safely. On any exception, callers handle error & status.
     with pdfplumber.open(pdf_path) as pdf, open(text_path, "w", encoding="utf-8") as out:
         page_count = len(pdf.pages)
-        for i, page in enumerate(pdf.pages, start=1):
+        for i, page in enumerate(pdf.pages, start=0):
             txt = page.extract_text() or "" # Some pages may be images (no text)
             # Page delimiter aids debugging and downstream chunking
             out.write(f"--- page {i} ---\n{txt}\n")
