@@ -20,8 +20,8 @@ from fastapi import FastAPI
 
 from common.config import settings
 from common.events import new_event, publish_event
-from app.crawler import discover_and_download
-from app.models import DiscoverResponse, DocumentRecord, DocumentsList
+from .crawler import discover_and_download
+from .models import DiscoverResponse, DocumentRecord, DocumentsList
 
 app = FastAPI(title="Ingestion Service")
 logger = logging.getLogger("ingestion")
