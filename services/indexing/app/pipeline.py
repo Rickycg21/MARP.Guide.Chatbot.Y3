@@ -20,7 +20,7 @@ import os
 # Load the embedding model used for document chunk encoding
 model = SentenceTransformer("all-MiniLM-L6-v2")
 # Setup directory where ChromaDB will store the vector index
-INDEX_DIR = "/data/index"
+INDEX_DIR = os.getenv("INDEX_DIR", "/data/index")
 
 
 # --- Main event handler: triggered when a DocumentExtracted event is received ---

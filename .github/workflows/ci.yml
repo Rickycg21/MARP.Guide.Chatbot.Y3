@@ -42,7 +42,10 @@ jobs:
           pytest tests/unit -v
 
       - name: Run Integration Tests
-        run: pytest tests/integration -v
+        run: |
+          export INDEX_DIR=/tmp/index
+          mkdir -p /tmp/index
+          pytest tests/integration -v
 
   docker-services:
     runs-on: ubuntu-latest
