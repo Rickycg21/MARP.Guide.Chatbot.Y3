@@ -20,7 +20,7 @@ import httpx
 from bs4 import BeautifulSoup
 import pdfplumber
 
-from services.ingestion.common.config import settings
+from common.config import settings
 
 MARP_SOURCE_URL = os.getenv(
     "MARP_SOURCE_URL",

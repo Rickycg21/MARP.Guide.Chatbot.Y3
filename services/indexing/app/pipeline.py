@@ -1,6 +1,6 @@
 # --- Imports and setup for the indexing pipeline ---
 
-from services.indexing.common.events import EventEnvelope, publish_event, new_event
+from common.events import EventEnvelope, publish_event, new_event
 try:
     from aio_pika.abc import AbstractIncomingMessage
 except ImportError:
