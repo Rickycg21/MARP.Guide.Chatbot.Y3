@@ -2,8 +2,7 @@ import pytest
 from pathlib import Path
 import asyncio
 
-#Imports work because conftest.py injects the correct service root
-from app.pipeline import read_text_file # type: ignore[import]
+from services.indexing.app.pipeline import read_text_file
 
 
 @pytest.mark.asyncio

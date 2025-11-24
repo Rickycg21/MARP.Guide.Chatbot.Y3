@@ -2,8 +2,8 @@ import pytest
 from pathlib import Path
 import numpy as np
 
-#Imports work because conftest.py injects the correct service root
-from app.pipeline import manual_index_document, collection # type: ignore[import]
+from services.indexing.app.pipeline import manual_index_document, collection
+
 
 @pytest.mark.asyncio
 async def test_manual_index_document(tmp_path):

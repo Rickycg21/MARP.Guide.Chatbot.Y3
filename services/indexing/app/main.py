@@ -1,12 +1,11 @@
-from common.config import settings
-from common.events import consume
-from app.pipeline import handle_document, manual_index_document, collection
-from app.models import IndexResponse, IndexStats
+from services.indexing.common.config import settings
+from services.indexing.common.events import consume
+from services.indexing.app.pipeline import handle_document, manual_index_document, collection
+from services.indexing.app.models import IndexResponse, IndexStats
 import asyncio
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from uuid import uuid4
 from pathlib import Path
-from app.pipeline import collection
 
 app = FastAPI(title="Indexing Service")
 

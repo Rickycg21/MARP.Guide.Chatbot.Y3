@@ -2,9 +2,9 @@ import pytest
 from pathlib import Path
 from fastapi.testclient import TestClient
 
-#Imports work because conftest.py injects the correct service root
-from app.main import app # type: ignore[import]
-from common.config import settings # type: ignore[import]
+from services.indexing.app.main import app
+from services.indexing.common.config import settings
+
 
 """
 Two DeprecationWarnings appear during tests because FastAPI's 'on_event'

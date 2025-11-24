@@ -13,10 +13,9 @@ SERVICE_NAMES = [
     "monitoring",
 ]
 
-"""
-Configures pytest so each microservice's `app/` and `common/` folders can be
-imported correctly by adding their service roots to PYTHONPATH during tests.
-"""
+# Make "services.*" importable from anywhere
+sys.path.insert(0, str(REPO_ROOT))
+print(f"[PYTEST] Added repo root to PYTHONPATH: {REPO_ROOT}")
 
 for service in SERVICE_NAMES:
     service_root = SERVICES_DIR / service

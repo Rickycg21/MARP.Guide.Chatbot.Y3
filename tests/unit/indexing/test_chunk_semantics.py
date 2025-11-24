@@ -1,7 +1,6 @@
 import pytest
 
-#Imports work because conftest.py injects the correct service root
-from app.pipeline import chunk_text_semantic # type: ignore[import]
+from services.indexing.app.pipeline import chunk_text_semantic
 
 
 def test_chunk_text_semantic_basic():
