@@ -352,7 +352,7 @@ def log_index_metadata(document_id: str, chunk_count: int):
     (Saved inside the container at /data/index_metadata.jsonl)
     """
     #Path to metadata file
-    metadata_path = Path("/data/index_metadata.jsonl")
+    metadata_path = Path(os.getenv("METADATA_PATH", "/data/index_metadata.jsonl"))
 
     # Create one JSON record for this document
     record = {

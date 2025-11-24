@@ -43,8 +43,17 @@ jobs:
 
       - name: Run Integration Tests
         run: |
+          # Chroma index directory
           export INDEX_DIR=/tmp/index
           mkdir -p /tmp/index
+
+          # Text storage directory (/data/text equivalent)
+          export DATA_ROOT=/tmp/data
+          mkdir -p /tmp/data/text
+
+          # Metadata JSONL path
+          export METADATA_PATH=/tmp/index_metadata.jsonl
+
           pytest tests/integration -v
 
   docker-services:
