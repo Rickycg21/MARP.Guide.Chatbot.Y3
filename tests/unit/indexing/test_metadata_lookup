@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
-from app.pipeline import _lookup_title_url_from_text_metadata
+
+#Imports work because conftest.py injects the correct service root
+from app.pipeline import _lookup_title_url_from_text_metadata # type: ignore[import]
 
 
 def test_lookup_title_url(tmp_path, monkeypatch):
