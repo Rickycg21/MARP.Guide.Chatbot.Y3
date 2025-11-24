@@ -18,10 +18,12 @@ import os
 import time
 import uuid
 from dataclasses import dataclass
+import textwrap
 from typing import Any, Dict, List, Optional, Tuple
 
 import httpx
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 try:
@@ -90,18 +92,18 @@ logger = logging.getLogger("chat-service")
 
 # --- Config via env ----------------------------------------------------------
 RETRIEVAL_URL = os.getenv("RETRIEVAL_URL", "http://retrieval:8000")
-RETRIEVAL_MODE = os.getenv("RETRIEVAL_MODE", "semantic")
+RETRIEVAL_MODE = os.getenv("RETRIEVAL_MODE", "semantic") #needs to be "hybrid" after merging
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
 OPENROUTER_BASE = os.getenv("OPENROUTER_BASE", "https://openrouter.ai/api/v1")
 
 try:
-    _cit_limit_env = int(os.getenv("CHAT_CITATION_LIMIT", "1"))
+    _cit_limit_env = int(os.getenv("CHAT_CITATION_LIMIT", "3"))
 except ValueError:
-    _cit_limit_env = 1
-# 1 citation limit controls how many retrieval snippets
-# are forwarded to gpt. Increase it later
-CITATION_LIMIT = max(1, _cit_limit_env)
+    _cit_limit_env = 3
+# Control how many retrieval snippets are forwarded to the LLM as citations.
+# Clamp to 2–3 so answers carry at least two sources when available.
+CITATION_LIMIT = min(3, max(2, _cit_limit_env))
 
 # --- Data locations ----------------------------------------------------------
 DATA_DIR = settings.data_root
@@ -140,8 +142,8 @@ class ChatResponse(BaseModel):
 
 
 def _select_context(chunks: List[RetrievedChunk]) -> List[RetrievedChunk]:
-    # picks subset of retrieved chunks that will be turned into citations
-    # single chunk for now, change later for multiple citations per answer.
+    # Picks subset of retrieved chunks that will be turned into citations.
+    # Aim for up to CITATION_LIMIT snippets; if fewer exist, use all.
     return chunks[:CITATION_LIMIT] if chunks else []
 
 # --- OpenRouter call ---------------------------------------------------------
@@ -206,15 +208,19 @@ async def _llm_answer(question: str, context_blocks: List[RetrievedChunk]) -> Di
     system_prompt = (
         "You are a MARP assistant answering questions for students and staff. "
         "Use only the supplied context snippets. "
-        "Cite exactly one source as [1] in your answer. "
-        'If the context is insufficient, reply with "I\'m not certain. Source: not available."'
+        "Provide 2-3 sources when available and cite them as [1], [2], [3] in-line. "
+        "If fewer than two sources are relevant, cite all available. "
+        "If at least one snippet is relevant, you must produce a grounded answer using those snippets. "
+        "Do not respond with uncertainty if any snippet is relevant; give the best concise answer supported by the snippets."
     )
 
     user_prompt = (
         f"Question: {question.strip()}\n\n"
         f"Context:\n{context_text}\n\n"
-        "Respond concisely, grounded entirely in the context. "
-        "Include the citation marker [1] once, pointing to the most relevant context line."
+        "Respond concisely (1-3 sentences), grounded entirely in the context. "
+        "If any snippet mentions a rule, timeframe, or deadline relevant to the question, state it plainly. "
+        "Include inline markers [1], [2], [3] for each cited snippet you use (at least two when available). "
+        "If information is partial, still provide the best grounded answer and cite the relevant snippets."
     )
 
     headers = {
@@ -232,7 +238,7 @@ async def _llm_answer(question: str, context_blocks: List[RetrievedChunk]) -> Di
         ],
     }
 
-    async with httpx.AsyncClient(timeout=60) as client:
+    async with httpx.AsyncClient(timeout=120) as client:
         response = await client.post(
             f"{OPENROUTER_BASE}/chat/completions", headers=headers, json=payload
         )
@@ -247,11 +253,12 @@ async def _llm_answer(question: str, context_blocks: List[RetrievedChunk]) -> Di
         raise HTTPException(status_code=502, detail="LLM returned empty response")
 
     text = content.strip()
-    if "[1]" not in text:
-        # Defensive append: models occasionally omit the citation marker even
-        # when instructed.  Appending keeps the API contract ("answer ends with
-        # [1]")
-        text = f"{text} [1]".strip()
+    # Ensure the response carries citation markers for the snippets we sent.
+    # Use up to CITATION_LIMIT, but try to include at least two markers when available.
+    required_refs = len(citations) if len(citations) < 2 else min(CITATION_LIMIT, len(citations))
+    for idx in range(1, required_refs + 1):
+        if f"[{idx}]" not in text:
+            text = f"{text} [{idx}]".strip()
 
     usage = data.get("usage") or {}
 
@@ -308,7 +315,7 @@ async def _retrieve(
     if correlation_id:
         params["correlationId"] = correlation_id
 
-    async with httpx.AsyncClient(timeout=30) as client:
+    async with httpx.AsyncClient(timeout=120) as client:
         response = await client.get(url, params=params)
         if response.status_code >= 400:
             logger.error("Retrieval error %s: %s", response.status_code, response.text)
@@ -409,10 +416,258 @@ def _append_answer_metadata(record: Dict[str, Any]) -> None:
 # --- FastAPI app -------------------------------------------------------------
 app = FastAPI(title="MARP-Guide Chat Service")
 
+UI_HTML = textwrap.dedent(
+    """
+    <!doctype html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>MARP Chat</title>
+      <style>
+        :root { color-scheme: dark; }
+        body {
+          margin: 0;
+          font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+          background: #0b1224;
+          color: #e2e8f0;
+          min-height: 100vh;
+        }
+        .page {
+          max-width: 1000px;
+          margin: 0 auto;
+          padding: 32px 20px 48px;
+        }
+        header { margin-bottom: 18px; }
+        h1 { margin: 0 0 6px; font-size: 26px; letter-spacing: 0.5px; }
+        p { margin: 4px 0; color: #cbd5e1; }
+        .panel {
+          background: #0f172a;
+          border: 1px solid #1e293b;
+          border-radius: 14px;
+          padding: 18px;
+          box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+          margin-bottom: 16px;
+        }
+        label { display: block; margin: 0 0 8px; font-weight: 700; }
+        textarea {
+          width: 100%;
+          background: #0b162d;
+          color: #e2e8f0;
+          border: 1px solid #1f2937;
+          border-radius: 10px;
+          padding: 12px;
+          font-size: 16px;
+          box-sizing: border-box;
+          min-height: 110px;
+          resize: vertical;
+        }
+        .actions {
+          margin-top: 12px;
+          display: flex;
+          gap: 10px;
+          align-items: center;
+        }
+        button {
+          background: linear-gradient(90deg, #2563eb, #22d3ee);
+          color: #0b1224;
+          border: none;
+          padding: 12px 18px;
+          border-radius: 10px;
+          font-weight: 800;
+          cursor: pointer;
+          box-shadow: 0 8px 24px rgba(34, 211, 238, 0.35);
+        }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .status { color: #93c5fd; font-size: 14px; }
+        .board {
+          background: #0d1427;
+          border: 1px solid #1e293b;
+          border-radius: 16px;
+          padding: 10px;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+          max-height: 70vh;
+          overflow-y: auto;
+        }
+        .empty { text-align: center; padding: 24px; color: #94a3b8; }
+        .msg {
+          display: grid;
+          grid-template-columns: 70px 1fr;
+          gap: 10px;
+          padding: 12px;
+          border-bottom: 1px solid #1f2937;
+        }
+        .msg:last-child { border-bottom: none; }
+        .role {
+          font-weight: 800;
+          color: #a5b4fc;
+          text-transform: uppercase;
+          font-size: 12px;
+          letter-spacing: 0.5px;
+        }
+        .role.user { color: #60a5fa; }
+        .bubble {
+          background: #0f172a;
+          border: 1px solid #1e293b;
+          border-radius: 12px;
+          padding: 12px 14px;
+          line-height: 1.5;
+          white-space: pre-wrap;
+        }
+        .msg.user .bubble { background: #0b162d; border-color: #1d4ed8; }
+        .msg.bot .bubble { background: #0f172a; border-color: #1f2937; }
+        .badges { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .badge {
+          padding: 4px 10px;
+          border-radius: 999px;
+          border: 1px solid #1f2937;
+          background: #0b162d;
+          color: #cbd5e1;
+          font-size: 12px;
+        }
+        .citations { margin-top: 10px; }
+        .citation {
+          display: block;
+          margin: 4px 0;
+          color: #a5b4fc;
+          font-size: 14px;
+        }
+        a { color: #60a5fa; }
+      </style>
+    </head>
+    <body>
+      <div class="page">
+        <header>
+          <h1>MARP Chat</h1>
+          <p>Ask questions about Lancaster University&#39;s MARP. Messages stack like a board so you can see prior Q&A.</p>
+        </header>
+
+        <div class="panel">
+          <form id="chat-form" method="post" action="#">
+            <label for="question">Ask MARP</label>
+            <textarea id="question" name="question" required minlength="3" placeholder="e.g., How many days do I have to submit an appeal?"></textarea>
+            <div class="actions">
+              <button id="submit-btn" type="submit">Send</button>
+              <div id="status" class="status"></div>
+            </div>
+          </form>
+        </div>
+
+        <div class="board" id="board">
+          <div class="empty">No messages yet. Ask your first question.</div>
+        </div>
+      </div>
+
+      <script>
+        const form = document.getElementById("chat-form");
+        const questionEl = document.getElementById("question");
+        const submitBtn = document.getElementById("submit-btn");
+        const statusEl = document.getElementById("status");
+        const board = document.getElementById("board");
+
+        const clearEmpty = () => {
+          const empty = board.querySelector(".empty");
+          if (empty) empty.remove();
+        };
+
+        const addMessage = (role, text, meta = {}) => {
+          clearEmpty();
+          const wrap = document.createElement("div");
+          wrap.className = `msg ${role}`;
+
+          const roleEl = document.createElement("div");
+          roleEl.className = `role ${role}`;
+          roleEl.textContent = role === "user" ? "You" : "Assistant";
+
+          const bubble = document.createElement("div");
+          bubble.className = "bubble";
+          bubble.innerHTML = (text || "").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\\n/g, "<br>");
+
+          if (meta.citations && meta.citations.length) {
+            const list = document.createElement("div");
+            list.className = "citations";
+            list.innerHTML = meta.citations
+              .map((c, idx) => {
+                const page = c.page !== null && c.page !== undefined ? ` (p.${c.page})` : "";
+                const link = c.url ? ` <a href=\\"${c.url}\\" target=\\"_blank\\" rel=\\"noreferrer\\">open</a>` : "";
+                return `<span class="citation">[${idx + 1}] ${c.title || "Source"}${page}${link}</span>`;
+              })
+              .join("");
+            bubble.appendChild(list);
+          }
+
+          if (meta.latency || meta.model || meta.correlation || meta.tokens) {
+            const badges = document.createElement("div");
+            badges.className = "badges";
+            if (meta.latency) badges.innerHTML += `<span class="badge">Latency: ${meta.latency} ms</span>`;
+            if (meta.model) badges.innerHTML += `<span class="badge">Model: ${meta.model}</span>`;
+            if (meta.tokens) badges.innerHTML += `<span class="badge">Tokens: ${meta.tokens}</span>`;
+            if (meta.correlation) badges.innerHTML += `<span class="badge">Corr ID: ${meta.correlation}</span>`;
+            bubble.appendChild(badges);
+          }
+
+          wrap.appendChild(roleEl);
+          wrap.appendChild(bubble);
+          board.appendChild(wrap);
+          board.scrollTop = board.scrollHeight;
+        };
+
+        form.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const question = questionEl.value.trim();
+          if (question.length < 3) {
+            statusEl.textContent = "Please enter a longer question.";
+            return;
+          }
+
+          addMessage("user", question);
+          submitBtn.disabled = true;
+          statusEl.textContent = "Thinking...";
+
+          try {
+            const response = await fetch("/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ question })
+            });
+
+            if (!response.ok) {
+              const detail = await response.text();
+              throw new Error(`Request failed (${response.status}): ${detail}`);
+            }
+
+            const data = await response.json();
+            addMessage("bot", data.answer || "No answer returned.", {
+              citations: data.citations || [],
+              latency: data.latency_ms ?? null,
+              model: data.model || null,
+              tokens: data.tokens_used !== null && data.tokens_used !== undefined ? data.tokens_used : null,
+              correlation: data.correlation_id || null,
+            });
+            statusEl.textContent = "Done";
+            questionEl.value = "";
+          } catch (err) {
+            statusEl.textContent = err.message || "Something went wrong.";
+            addMessage("bot", `Error: ${err.message || "Unknown error."}`);
+          } finally {
+            submitBtn.disabled = false;
+          }
+        });
+      </script>
+    </body>
+    </html>
+    """
+).strip()
+
 
 @app.get("/health")
 def health() -> Dict[str, str]:
     return {"status": "ok", "service": settings.service_name}
+
+
+@app.get("/", response_class=HTMLResponse)
+async def ui() -> HTMLResponse:
+    return HTMLResponse(content=UI_HTML, status_code=200)
 
 
 @app.post("/chat", response_model=ChatResponse)
@@ -490,3 +745,4 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
