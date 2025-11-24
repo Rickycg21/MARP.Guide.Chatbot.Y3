@@ -16,7 +16,7 @@ on:
 
 jobs:
   tests:
-    name: unit and integration tests
+    name: Unit and Integration testing
     runs-on: ubuntu-latest
 
     steps:
@@ -57,6 +57,7 @@ jobs:
           pytest tests/integration -v
 
   docker-services:
+    name: Docker Services builidng and health checks
     runs-on: ubuntu-latest
 
     env:
