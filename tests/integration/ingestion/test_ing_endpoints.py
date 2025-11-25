@@ -16,6 +16,9 @@ client = TestClient(app)
 
 
 def test_health_endpoint():
+    """
+    Test for GET /health.
+    """
     response = client.get("/health")
     
     assert response.status_code == 200
@@ -26,6 +29,10 @@ def test_health_endpoint():
 
 
 def test_get_documents_empty(tmp_path):
+    """
+    Integration test for GET /documents when no catalog file exists.
+    Ensures the endpoint returns an empty list rather than failing.
+    """
     data_root = Path(settings.data_root)
     catalog_path = data_root / "pdf_metadata.jsonl"
 
@@ -41,6 +48,11 @@ def test_get_documents_empty(tmp_path):
 
 
 def test_get_documents_with_catalog(tmp_path):
+    """
+    Integration test for GET /documents when a catalog file exists.
+    Ensures the ingestion service correctly loads and returns the
+    document metadata stored in pdf_metadata.jsonl.
+    """
     data_root = Path(settings.data_root)
     data_root.mkdir(parents=True, exist_ok=True)
 

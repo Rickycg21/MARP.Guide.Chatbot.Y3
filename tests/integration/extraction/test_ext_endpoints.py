@@ -33,12 +33,20 @@ def temp_data_root(monkeypatch):
 
 
 def make_client():
+    """
+    Utility function that returns an AsyncClient using ASGITransport.
+    This allows us to test FastAPI endpoints without running a server.
+    """
     transport = ASGITransport(app=app)
     return AsyncClient(transport=transport, base_url="http://test")
 
 
 @pytest.mark.asyncio
 async def test_health():
+    """
+    Integration test for GET /health.
+    Ensures the extraction service reports 'ok' and includes required fields.
+    """
     async with make_client() as ac:
         res = await ac.get("/health")
     assert res.status_code == 200
@@ -49,6 +57,13 @@ async def test_health():
 
 @pytest.mark.asyncio
 async def test_manual_extract_endpoint_creates_pending_status(monkeypatch):
+    """
+    Integration test for POST /extract/{document_id}.
+    Ensures:
+      - A manual trigger creates a 'pending' entry in STATUS_PATH.
+      - The endpoint responds with a 202 Accepted + ExtractResponse.
+      - The underlying extraction task is mocked correctly.
+    """
     async def fake_task(*args, **kwargs):
         return None
 
@@ -77,6 +92,10 @@ async def test_manual_extract_endpoint_creates_pending_status(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_status_unknown_document():
+    """
+    Integration test for GET /status/{document_id} when the document
+    has no history. The service should return a valid 'unknown' status.
+    """
     async with make_client() as ac:
         res = await ac.get("/status/XXX999")
 
@@ -89,6 +108,11 @@ async def test_status_unknown_document():
 
 @pytest.mark.asyncio
 async def test_status_all_empty():
+    """
+    Integration test for GET /status.
+    With an empty STATUS_PATH, the service should return an empty list
+    instead of failing or returning invalid data.
+    """
     async with make_client() as ac:
         res = await ac.get("/status")
 
@@ -96,3 +120,4 @@ async def test_status_all_empty():
     data = res.json()
 
     assert data["status_history"] == []
+
