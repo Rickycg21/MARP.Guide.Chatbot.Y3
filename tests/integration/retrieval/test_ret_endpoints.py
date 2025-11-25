@@ -25,6 +25,7 @@ for attr in dir(retrieval_models):
 sys.modules["app.models"] = fake_app_models
 # ------------------------------------
 
+
 from services.retrieval.app.main import app, startup
 
 
