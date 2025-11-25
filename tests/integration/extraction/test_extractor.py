@@ -97,7 +97,7 @@ def test_extract_to_text_success(monkeypatch):
     with open(result_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    assert "--- page 1 ---" in content
+    assert "--- page 0 ---" in content
     assert "Content 1" in content
-    assert "--- page 2 ---" in content
+    assert "--- page 1 ---" in content
     assert "Content 2" in content
