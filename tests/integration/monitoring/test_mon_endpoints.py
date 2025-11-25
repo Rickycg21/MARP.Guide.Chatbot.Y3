@@ -2,11 +2,28 @@ import pytest
 from fastapi.testclient import TestClient
 import sys
 from pathlib import Path
+import types
 
 # --- FIX PYTHONPATH ---
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 # ------------------------
+
+# --- FIX IMPORT COLLISION FOR CI (fake app.models) ---
+fake_app_models = types.ModuleType("app.models")
+
+from services.monitoring.app.models import (
+    MetricsSnapshot,
+    IndexingMetrics,
+    RequestMetrics,
+)
+
+fake_app_models.MetricsSnapshot = MetricsSnapshot
+fake_app_models.IndexingMetrics = IndexingMetrics
+fake_app_models.RequestMetrics = RequestMetrics
+
+sys.modules["app.models"] = fake_app_models
+# ------------------------------------------------------
 
 # Import the FastAPI app
 from services.monitoring.app.main import app  

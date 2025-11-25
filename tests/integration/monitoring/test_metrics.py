@@ -2,11 +2,29 @@ import json
 import pytest
 from pathlib import Path
 import sys
+import types
 
 # --- FIX PYTHONPATH ---
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 # ------------------------
+
+# --- FIX IMPORT COLLISION FOR CI (fake app.models) ---
+fake_app_models = types.ModuleType("app.models")
+
+from services.monitoring.app.models import (
+    MetricsSnapshot,
+    IndexingMetrics,
+    RequestMetrics,
+)
+
+fake_app_models.MetricsSnapshot = MetricsSnapshot
+fake_app_models.IndexingMetrics = IndexingMetrics
+fake_app_models.RequestMetrics = RequestMetrics
+
+# Register fake module
+sys.modules["app.models"] = fake_app_models
+# ------------------------------------------------------
 
 import services.monitoring.app.metrics as metrics_mod
 from services.monitoring.common.events import EventEnvelope
