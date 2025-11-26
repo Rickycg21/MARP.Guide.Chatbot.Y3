@@ -19,6 +19,7 @@ from starlette.middleware.cors import CORSMiddleware
 from app.retriever import Retriever
 from app.models import HealthResponse, SearchResponse, SearchResult, Scores, RetrievalResult, RetrievalPayload, RetrievalCompletedEvent
 
+from common import events as ev
 from common.config import settings
 
 # -----------------------------------------------------------------------------
@@ -55,7 +56,6 @@ async def publish_retrieval_completed(
     global _publish
     try:
         if _publish is None:
-            from common import events as ev
             _publish = getattr(ev, "publish_event_async", None) or getattr(ev, "publish_event", None)
         if _publish is None:
             log.warning("No publish function found, skipping event.")
@@ -91,7 +91,7 @@ async def publish_retrieval_completed(
         event = RetrievalCompletedEvent(
             eventType="RetrievalCompleted",
             eventId=str(uuid.uuid4()),
-            timestamp=dt.datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+            timestamp=ev.now_iso(),
             correlationId=correlation_id or str(uuid.uuid4()),
             source=SERVICE_NAME,
             version="1.0",
