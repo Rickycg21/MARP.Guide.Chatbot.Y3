@@ -12,6 +12,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Pre-cache the embedding model so startup doesn't wait on downloads
+RUN python - <<'PY'
+from sentence_transformers import SentenceTransformer
+SentenceTransformer("all-MiniLM-L6-v2")
+PY
+
 # Copy the rest of the app
 COPY . .
 

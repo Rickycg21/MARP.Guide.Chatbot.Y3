@@ -62,13 +62,9 @@ class Retriever:
             model_name=str(self.embed_model)
         )
 
-        # Create/get the persistent collection.
-        self._pc = chromadb.PersistentClient(path=self.chroma_dir)
-        self._coll = self._pc.get_or_create_collection(
-            self.collection,
-            metadata={"hnsw:space": "cosine"},
-            embedding_function=self._embed_fn,
-        )
+        # Placeholder client/collection set on demand per query.
+        self._pc = None
+        self._coll = None
 
     # ---------------------------------------------------------------------
     # Health
@@ -83,6 +79,24 @@ class Retriever:
         """
         status = "ok"
         chroma_ok = True
+
+        # Lazily open client/collection if not yet created (we create per request in search).
+        if self._coll is None:
+            try:
+                self._pc = chromadb.PersistentClient(path=self.chroma_dir)
+                self._coll = self._pc.get_or_create_collection(
+                    self.collection,
+                    metadata={"hnsw:space": "cosine"},
+                    embedding_function=self._embed_fn,
+                )
+            except Exception as e:
+                log.exception("health: failed to init chroma client: %s", e)
+                return {
+                    "status": "down",
+                    "chromaDir": self.chroma_dir,
+                    "embedding": {"reachable": False, "model": self.embed_model},
+                    "bm25_pipeline": {"ready": False},
+                }
 
         # --- Check 1: Chroma connectivity
         try:
@@ -190,6 +204,14 @@ class Retriever:
 
         # Optional per-document filter.
         where = {"document_id": document_id} if document_id else None
+
+        # Open a fresh client/collection each request to avoid stale views.
+        self._pc = chromadb.PersistentClient(path=self.chroma_dir)
+        self._coll = self._pc.get_or_create_collection(
+            self.collection,
+            metadata={"hnsw:space": "cosine"},
+            embedding_function=self._embed_fn,
+        )
 
         # Decide how many semantic candidates to pull from Chroma.
         if mode == "hybrid":
