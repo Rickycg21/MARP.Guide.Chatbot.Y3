@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import chromadb
 from rank_bm25 import BM25Okapi
-from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
+from sentence_transformers import SentenceTransformer
 
 log = logging.getLogger(__name__)
 
@@ -57,10 +57,8 @@ class Retriever:
             self.hybrid_alpha,
         )
 
-        # Embedding function kept in sync with indexing-service 
-        self._embed_fn = SentenceTransformerEmbeddingFunction(
-            model_name=str(self.embed_model)
-        )
+        # Embedding model kept in sync with indexing-service (torch, no ONNX).
+        self._model = SentenceTransformer(self.embed_model)
 
         # Placeholder client/collection set on demand per query.
         self._pc = None
@@ -87,7 +85,6 @@ class Retriever:
                 self._coll = self._pc.get_or_create_collection(
                     self.collection,
                     metadata={"hnsw:space": "cosine"},
-                    embedding_function=self._embed_fn,
                 )
             except Exception as e:
                 log.exception("health: failed to init chroma client: %s", e)
@@ -210,7 +207,6 @@ class Retriever:
         self._coll = self._pc.get_or_create_collection(
             self.collection,
             metadata={"hnsw:space": "cosine"},
-            embedding_function=self._embed_fn,
         )
 
         # Decide how many semantic candidates to pull from Chroma.
@@ -219,9 +215,12 @@ class Retriever:
         else:
             candidate_k = top_k
 
+        # Compute query embedding with the same model as indexing.
+        q_emb = self._model.encode([q], convert_to_numpy=True).tolist()
+
         t0 = time.time()
         raw = self._coll.query(
-            query_texts=[q],
+            query_embeddings=q_emb,
             n_results=max(1, int(candidate_k)),
             where=where,
             include=["documents", "metadatas", "distances"],
