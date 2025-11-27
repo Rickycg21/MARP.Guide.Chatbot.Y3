@@ -113,10 +113,11 @@ class Retriever:
         embed_ok = False
         if chroma_ok:
             try:
-                # Use a fixed test query to verify embedding and retrieval returns results
+                # Use a fixed test query to verify embedding path by computing embeddings directly.
                 test_query = "health check"
+                q_emb = self._model.encode([test_query], convert_to_numpy=True).tolist()
                 raw = self._coll.query(
-                    query_texts=[test_query],
+                    query_embeddings=q_emb,
                     n_results=1,
                     include=["documents"],
                 )
@@ -126,7 +127,8 @@ class Retriever:
                 else:
                     log.warning("health: embedding test returned no documents")
             except Exception as e:
-                log.exception("health: embedding test failed: %s", e)
+                # Degrade health but avoid noisy stack traces on transient Chroma/SQLite errors.
+                log.warning("health: embedding test failed: %s", e)
 
         if not embed_ok:
             # degrade but keep chroma_ok state
@@ -231,9 +233,33 @@ class Retriever:
         metas = raw.get("metadatas", [[]])[0]
         dists = raw.get("distances", [[]])[0]
 
-        # If we have no documents at all, short-circuit.
+        # If we have no documents at all, retry once after a fresh client/collection if data exists.
         if not docs:
-            return [], {"duration_ms": duration_ms}
+            try:
+                # Log the observed count before we decide to retry to help track empty-result issues.
+                coll_count = self._coll.count()
+                log.warning(
+                    "empty result; collection count=%s candidate_k=%s mode=%s", coll_count, candidate_k, mode
+                )
+                if coll_count > 0:
+                    self._pc = chromadb.PersistentClient(path=self.chroma_dir)
+                    self._coll = self._pc.get_or_create_collection(
+                        self.collection,
+                        metadata={"hnsw:space": "cosine"},
+                    )
+                    raw = self._coll.query(
+                        query_embeddings=q_emb,
+                        n_results=max(1, int(candidate_k)),
+                        where=where,
+                        include=["documents", "metadatas", "distances"],
+                    )
+                    docs = raw.get("documents", [[]])[0]
+                    metas = raw.get("metadatas", [[]])[0]
+                    dists = raw.get("distances", [[]])[0]
+            except Exception as e:
+                log.warning("retry after empty result failed: %s", e)
+            if not docs:
+                return [], {"duration_ms": duration_ms}
 
         # ---- Semantic scoring: distance (cosine) -> similarity in [0,1]
         # Chroma returns cosine distance roughly in [0,2].
