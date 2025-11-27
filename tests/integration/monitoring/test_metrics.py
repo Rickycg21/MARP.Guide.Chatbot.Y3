@@ -9,7 +9,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT))
 # ------------------------
 
-# --- FIX IMPORT COLLISION FOR CI (fake app.models) ---
+# --- FIX IMPORT COLLISION FOR CI  ---
 fake_app_models = types.ModuleType("app.models")
 
 from services.monitoring.app.models import (
@@ -24,7 +24,7 @@ fake_app_models.RequestMetrics = RequestMetrics
 
 # Register fake module
 sys.modules["app.models"] = fake_app_models
-# ------------------------------------------------------
+# ---------------------------------------------
 
 import services.monitoring.app.metrics as metrics_mod
 from services.monitoring.common.events import EventEnvelope
