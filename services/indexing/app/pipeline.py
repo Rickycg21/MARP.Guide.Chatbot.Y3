@@ -275,7 +275,6 @@ def chunk_text_semantic(
         f"total {total_tokens} tokens, avg {avg_tokens:.1f}t/chunk)"
     )
 
-    print(f"[DEBUG] Ejemplo de metadatos: {chunks[0]}")
     return chunks
 
 def generate_embeddings(chunks):
