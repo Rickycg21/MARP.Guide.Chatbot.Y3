@@ -96,14 +96,14 @@ RETRIEVAL_MODE = os.getenv("RETRIEVAL_MODE", "hybrid")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
 OPENROUTER_BASE = os.getenv("OPENROUTER_BASE", "https://openrouter.ai/api/v1")
-
 try:
     _cit_limit_env = int(os.getenv("CHAT_CITATION_LIMIT", "3"))
 except ValueError:
     _cit_limit_env = 3
 # Control how many retrieval snippets are forwarded to the LLM as citations.
-# Clamp to 2–3 so answers carry at least two sources when available.
+# Clamp to 2-3 so answers carry at least two sources when available.
 CITATION_LIMIT = min(3, max(2, _cit_limit_env))
+SCORE_THRESHOLD = 0.5
 
 # --- Data locations ----------------------------------------------------------
 DATA_DIR = settings.data_root
@@ -282,7 +282,7 @@ async def _retrieve(
     run in isolation during early development.
     Returns both the normalised chunks and a metadata dict from the retrieval call.
     """
-    limit = max(1, min(top_k, 10))
+    limit = max(1, min(top_k, 3))
     if os.getenv("RETRIEVAL_FAKE", "0") == "1":
         fake_chunks = [
             RetrievedChunk(
@@ -378,6 +378,11 @@ async def _retrieve(
             logger.warning("Skipping malformed chunk: %s (%s)", raw, exc)
             continue
 
+        # Only keep chunks meeting the score threshold.
+        if chunk.score is None or chunk.score < SCORE_THRESHOLD:
+            logger.debug("Dropping chunk below score threshold: %s (score=%s)", chunk.title, chunk.score)
+            continue
+
         chunks.append(chunk)
         result_summaries.append(
             {
@@ -386,6 +391,9 @@ async def _retrieve(
                 "score": score_val,
             }
         )
+
+    # Sort descending by score to prioritize higher-signal snippets.
+    chunks.sort(key=lambda c: (c.score is None, -(c.score or 0)))
 
     if not chunks:
         raise HTTPException(status_code=404, detail="No supporting sources found")
