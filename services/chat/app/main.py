@@ -168,26 +168,6 @@ async def _llm_answer(question: str, context_blocks: List[RetrievedChunk]) -> Di
         )
         for block in selected
     ]
-    # Fake LLM was for local testing without having to wait
-    # for prior services to be complete (may be useful in future).
-    if os.getenv("LLM_FAKE", "0") == "1":
-        citation = citations[0]
-        reference = citation.title
-        if citation.page is not None:
-            reference += f" p.{citation.page}"
-        if citation.url:
-            reference += f" ({citation.url})"
-        text = (
-            "[FAKE LLM] Local stub answer grounded on the provided source. "
-            f"Reference: [1] {reference}."
-        )
-        return {
-            "text": text,
-            "tokens_used": 0,
-            "model": "fake-llm",
-            "citations": citations,
-        }
-
     if not OPENROUTER_API_KEY:
         raise HTTPException(status_code=500, detail="OPENROUTER_API_KEY not configured")
 
@@ -283,33 +263,6 @@ async def _retrieve(
     Returns both the normalised chunks and a metadata dict from the retrieval call.
     """
     limit = max(1, min(top_k, 3))
-    if os.getenv("RETRIEVAL_FAKE", "0") == "1":
-        fake_chunks = [
-            RetrievedChunk(
-                text="MARP consolidates Lancaster University's academic regulations for staff and students.",
-                title="MARP Handbook",
-                page=1,
-                url="https://example.org/marp.pdf",
-                score=0.99,
-            ),
-            RetrievedChunk(
-                text="Appeals must normally be submitted within ten working days of the decision notification.",
-                title="MARP Handbook",
-                page=42,
-                url="https://example.org/marp.pdf",
-                score=0.95,
-            ),
-        ]
-        selected = fake_chunks[:limit]
-        meta = {
-            "query_id": "fake-query",
-            "mode": "offline",
-            "duration_ms": 0,
-            "result_count": len(selected),
-            "results": [{"title": chunk.title, "page": chunk.page, "score": chunk.score} for chunk in selected],
-        }
-        return selected, meta
-
     url = f"{RETRIEVAL_URL.rstrip('/')}/search"
     params: Dict[str, Any] = {"q": question, "topK": limit, "mode": RETRIEVAL_MODE}
     if correlation_id:
@@ -796,13 +749,6 @@ async def _llm_fallback(question: str) -> Dict[str, Any]:
     Call the LLM with a guardrailed prompt to politely decline when no MARP
     context is available. Returns text, tokens_used, and model. No citations.
     """
-    if os.getenv("LLM_FAKE", "0") == "1":
-        return {
-            "text": "I don't have information on that topic. Source: not available.",
-            "tokens_used": 0,
-            "model": "fake-llm-fallback",
-        }
-
     if not OPENROUTER_API_KEY:
         return {
             "text": "I don't have information on that topic yet. Source: not available.",
