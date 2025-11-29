@@ -720,7 +720,21 @@ async def chat(req: ChatRequest) -> ChatResponse:
     context_blocks = _select_context(chunks)
 
     # 2) Generate grounded answer
-    llm_result = await _llm_answer(req.question, context_blocks)
+    try:
+        llm_result = await _llm_answer(req.question, context_blocks)
+    except Exception as exc:
+        # Graceful fallback when LLM is unavailable (e.g., no API key, offline).
+        logger.warning("LLM unavailable, returning static fallback: %s", exc)
+        latency_ms = int((time.perf_counter() - start) * 1000)
+        return ChatResponse(
+            answer="I can't generate an answer right now. Source: not available.",
+            citations=[],
+            model="n/a",
+            tokens_used=None,
+            latency_ms=latency_ms,
+            correlation_id=correlation_id,
+        )
+
     latency_ms = int((time.perf_counter() - start) * 1000)
 
     response = ChatResponse(
