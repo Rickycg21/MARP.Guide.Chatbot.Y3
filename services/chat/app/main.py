@@ -692,16 +692,29 @@ async def chat(req: ChatRequest) -> ChatResponse:
         chunks, retrieval_meta = await _retrieve(req.question, req.top_k, correlation_id)
     except HTTPException as exc:
         if exc.status_code == 404:
-            # Graceful fallback for irrelevant/unsupported questions: respond politely without citations.
-            latency_ms = int((time.perf_counter() - start) * 1000)
-            return ChatResponse(
-                answer="I don't have information on that topic yet. Source: not available.",
-                citations=[],
-                model="n/a",
-                tokens_used=None,
-                latency_ms=latency_ms,
-                correlation_id=correlation_id,
-            )
+            # Graceful fallback for irrelevant/unsupported questions: still consult the LLM to craft a polite reply
+            # with no citations.
+            try:
+                fallback = await _llm_fallback(req.question)
+                latency_ms = int((time.perf_counter() - start) * 1000)
+                return ChatResponse(
+                    answer=fallback["text"],
+                    citations=[],
+                    model=fallback["model"],
+                    tokens_used=fallback.get("tokens_used"),
+                    latency_ms=latency_ms,
+                    correlation_id=correlation_id,
+                )
+            except Exception:
+                latency_ms = int((time.perf_counter() - start) * 1000)
+                return ChatResponse(
+                    answer="I don't have information on that topic yet. Source: not available.",
+                    citations=[],
+                    model="n/a",
+                    tokens_used=None,
+                    latency_ms=latency_ms,
+                    correlation_id=correlation_id,
+                )
         raise
 
     context_blocks = _select_context(chunks)
@@ -762,6 +775,70 @@ async def chat(req: ChatRequest) -> ChatResponse:
         logger.warning("Failed to publish AnswerGenerated event: %s", exc)
 
     return response
+
+
+async def _llm_fallback(question: str) -> Dict[str, Any]:
+    """
+    Call the LLM with a guardrailed prompt to politely decline when no MARP
+    context is available. Returns text, tokens_used, and model. No citations.
+    """
+    if os.getenv("LLM_FAKE", "0") == "1":
+        return {
+            "text": "I don't have information on that topic. Source: not available.",
+            "tokens_used": 0,
+            "model": "fake-llm-fallback",
+        }
+
+    if not OPENROUTER_API_KEY:
+        return {
+            "text": "I don't have information on that topic yet. Source: not available.",
+            "tokens_used": None,
+            "model": "n/a",
+        }
+
+    system_prompt = (
+        "You are a MARP assistant. No supporting MARP sources are available for this question. "
+        "Reply briefly that you cannot answer from MARP, without inventing details or citations. "
+        "Encourage the user to ask about MARP policies, regulations, appeals, assessments, or timelines."
+    )
+    user_prompt = (
+        f"Question: {question.strip()}\n\n"
+        "You have zero supporting context. Do not fabricate an answer. "
+        "Politely say you lack information from MARP on this topic, and suggest they ask a MARP-related question."
+    )
+
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": os.getenv("OPENROUTER_REFERRER", "http://localhost"),
+        "X-Title": os.getenv("OPENROUTER_TITLE", "MARP-Guide Chat"),
+    }
+    payload = {
+        "model": OPENROUTER_MODEL,
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt},
+        ],
+    }
+
+    async with httpx.AsyncClient(timeout=120) as client:
+        response = await client.post(f"{OPENROUTER_BASE}/chat/completions", headers=headers, json=payload)
+        if response.status_code >= 400:
+            logger.error("OpenRouter fallback error %s: %s", response.status_code, response.text)
+            raise HTTPException(status_code=502, detail="LLM generation failed")
+        data = response.json()
+
+    choice = (data.get("choices") or [{}])[0]
+    content = (choice.get("message") or {}).get("content", "")
+    if not content:
+        raise HTTPException(status_code=502, detail="LLM returned empty response")
+
+    usage = data.get("usage") or {}
+    return {
+        "text": content.strip(),
+        "tokens_used": usage.get("total_tokens"),
+        "model": data.get("model", OPENROUTER_MODEL),
+    }
 
 # Uvicorn entrypoint for Docker
 if __name__ == "__main__":
