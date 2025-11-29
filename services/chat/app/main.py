@@ -688,7 +688,22 @@ async def chat(req: ChatRequest) -> ChatResponse:
     session_id = req.session_id or str(uuid.uuid4())
 
     # 1) Retrieve supporting chunks
-    chunks, retrieval_meta = await _retrieve(req.question, req.top_k, correlation_id)
+    try:
+        chunks, retrieval_meta = await _retrieve(req.question, req.top_k, correlation_id)
+    except HTTPException as exc:
+        if exc.status_code == 404:
+            # Graceful fallback for irrelevant/unsupported questions: respond politely without citations.
+            latency_ms = int((time.perf_counter() - start) * 1000)
+            return ChatResponse(
+                answer="I don't have information on that topic yet. Source: not available.",
+                citations=[],
+                model="n/a",
+                tokens_used=None,
+                latency_ms=latency_ms,
+                correlation_id=correlation_id,
+            )
+        raise
+
     context_blocks = _select_context(chunks)
 
     # 2) Generate grounded answer
