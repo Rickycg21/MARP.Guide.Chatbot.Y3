@@ -258,8 +258,6 @@ async def _retrieve(
 ) -> Tuple[List[RetrievedChunk], Dict[str, Any]]:
     """
     Call the Retrieval service to obtain MARP snippets.
-    When RETRIEVAL_FAKE=1, return deterministic stubs so the chat service can
-    run in isolation during early development.
     Returns both the normalised chunks and a metadata dict from the retrieval call.
     """
     limit = max(1, min(top_k, 3))
