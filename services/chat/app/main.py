@@ -190,7 +190,7 @@ async def _llm_answer(question: str, context_blocks: List[RetrievedChunk]) -> Di
         "Use only the supplied context snippets. "
         "Provide 2-3 sources when available and cite them as [1], [2], [3] in-line. "
         "If fewer than two sources are relevant, cite all available. "
-        "If at least one snippet is relevant, you must produce a grounded answer using those snippets. "
+        "If at least two snippets are relevant, you must produce a grounded answer using those snippets. "
         "Do not respond with uncertainty if any snippet is relevant; give the best concise answer supported by the snippets."
     )
 
@@ -659,7 +659,7 @@ async def chat(req: ChatRequest) -> ChatResponse:
             except Exception:
                 latency_ms = int((time.perf_counter() - start) * 1000)
                 return ChatResponse(
-                    answer="I don't have information on that topic yet. Source: not available.",
+                    answer="I don't have information on that topic yet. Source: not available. (error code: 404)",
                     citations=[],
                     model="n/a",
                     tokens_used=None,
@@ -673,12 +673,27 @@ async def chat(req: ChatRequest) -> ChatResponse:
     # 2) Generate grounded answer
     try:
         llm_result = await _llm_answer(req.question, context_blocks)
+    except HTTPException as exc:
+        latency_ms = int((time.perf_counter() - start) * 1000)
+        if exc.status_code == 500 and "OPENROUTER_API_KEY" in str(exc.detail):
+            msg = f"OpenRouter API key is not configured; unable to generate an answer right now. (error code: {exc.status_code})"
+        else:
+            msg = f"The LLM service is unavailable (network/API issue); unable to generate an answer right now. (error code: {exc.status_code})"
+        logger.warning("LLM unavailable (%s): %s", exc.status_code, exc.detail)
+        return ChatResponse(
+            answer=msg,
+            citations=[],
+            model="n/a",
+            tokens_used=None,
+            latency_ms=latency_ms,
+            correlation_id=correlation_id,
+        )
     except Exception as exc:
-        # Graceful fallback when LLM is unavailable (e.g., no API key, offline).
+        # Graceful fallback when LLM is unavailable (unexpected error).
         logger.warning("LLM unavailable, returning static fallback: %s", exc)
         latency_ms = int((time.perf_counter() - start) * 1000)
         return ChatResponse(
-            answer="I can't generate an answer right now. Source: not available.",
+            answer="LLM error occurred; unable to generate an answer right now. (error code: 500)",
             citations=[],
             model="n/a",
             tokens_used=None,
@@ -749,7 +764,7 @@ async def _llm_fallback(question: str) -> Dict[str, Any]:
     """
     if not OPENROUTER_API_KEY:
         return {
-            "text": "I don't have information on that topic yet. Source: not available.",
+            "text": "OpenRouter API key is not configured; unable to answer without MARP sources. (error code: 500)",
             "tokens_used": None,
             "model": "n/a",
         }
