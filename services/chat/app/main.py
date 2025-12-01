@@ -103,7 +103,7 @@ except ValueError:
 # Control how many retrieval snippets are forwarded to the LLM as citations.
 # Clamp to 2-3 so answers carry at least two sources when available.
 CITATION_LIMIT = min(3, max(2, _cit_limit_env))
-SCORE_THRESHOLD = 0.5
+SCORE_THRESHOLD = 0.4
 
 # --- Data locations ----------------------------------------------------------
 DATA_DIR = settings.data_root
@@ -189,9 +189,9 @@ async def _llm_answer(question: str, context_blocks: List[RetrievedChunk]) -> Di
         "You are a MARP assistant answering questions for students and staff. "
         "Use only the supplied context snippets. "
         "Provide 2-3 sources when available and cite them as [1], [2], [3] in-line. "
-        "If fewer than two sources are relevant, cite all available. "
+        #"If fewer than two sources are relevant, cite all available. "
         "If at least two snippets are relevant, you must produce a grounded answer using those snippets. "
-        "Do not respond with uncertainty if any snippet is relevant; give the best concise answer supported by the snippets."
+        "Do not respond with uncertainty if any snippet is relevant."
     )
 
     user_prompt = (
@@ -234,8 +234,8 @@ async def _llm_answer(question: str, context_blocks: List[RetrievedChunk]) -> Di
 
     text = content.strip()
     # Ensure the response carries citation markers for the snippets we sent.
-    # Use up to CITATION_LIMIT, but try to include at least two markers when available.
-    required_refs = len(citations) if len(citations) < 2 else min(CITATION_LIMIT, len(citations))
+    # Use up to CITATION_LIMIT, and require at least two markers when available.
+    required_refs = min(CITATION_LIMIT, len(citations))
     for idx in range(1, required_refs + 1):
         if f"[{idx}]" not in text:
             text = f"{text} [{idx}]".strip()
@@ -669,6 +669,22 @@ async def chat(req: ChatRequest) -> ChatResponse:
         raise
 
     context_blocks = _select_context(chunks)
+    if len(context_blocks) < 2:
+        try:
+            fallback = await _llm_fallback(req.question)
+            latency_ms = int((time.perf_counter() - start) * 1000)
+            return ChatResponse(
+                answer=fallback["text"],
+                citations=[],
+                model=fallback["model"],
+                tokens_used=fallback.get("tokens_used"),
+                latency_ms=latency_ms,
+                correlation_id=correlation_id,
+            )
+        except Exception as exc:
+            latency_ms = int((time.perf_counter() - start) * 1000)
+            logger.warning("Fallback failed after insufficient citations: %s", exc)
+            raise HTTPException(status_code=404, detail="No supporting sources found")
 
     # 2) Generate grounded answer
     try:
