@@ -4,6 +4,8 @@ from services.indexing.app.pipeline import _lookup_title_url_from_text_metadata
 
 
 def test_lookup_title_url(tmp_path, monkeypatch):
+    """_lookup_title_url_from_text_metadata should return correct title and url"""
+    
     fake_file = tmp_path / "text_metadata.jsonl"
 
     def fake_Path(_):
