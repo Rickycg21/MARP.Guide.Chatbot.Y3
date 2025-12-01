@@ -1,19 +1,18 @@
 import json
-from pathlib import Path
-from services.indexing.app.pipeline import _lookup_title_url_from_text_metadata
 import services.indexing.app.pipeline as pipeline
+from services.indexing.app.pipeline import _lookup_title_url_from_text_metadata
 
 
 def test_lookup_title_url(tmp_path, monkeypatch):
-    # Fake settings object, replacing the frozen dataclass entirely
-    class FakeSettings:
-        data_root = str(tmp_path)
+    fake_file = tmp_path / "text_metadata.jsonl"
 
-    monkeypatch.setattr(pipeline, "settings", FakeSettings())
+    def fake_Path(_):
+        return fake_file
 
-    # Create fake text_metadata.jsonl inside tmp_path
-    meta_file = tmp_path / "text_metadata.jsonl"
-    meta_file.write_text(
+    monkeypatch.setitem(pipeline.__dict__, "Path", fake_Path)
+
+    # Write fake metadata
+    fake_file.write_text(
         json.dumps({
             "document_id": "docX",
             "title": "My Title",
@@ -22,10 +21,7 @@ def test_lookup_title_url(tmp_path, monkeypatch):
         encoding="utf-8"
     )
 
-    # Run the function
     title, url = _lookup_title_url_from_text_metadata("docX")
 
     assert title == "My Title"
     assert url == "http://example.com"
-
-    meta_file.unlink()
