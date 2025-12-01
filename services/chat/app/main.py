@@ -103,7 +103,7 @@ except ValueError:
 # Control how many retrieval snippets are forwarded to the LLM as citations.
 # Clamp to 2-3 so answers carry at least two sources when available.
 CITATION_LIMIT = min(3, max(2, _cit_limit_env))
-SCORE_THRESHOLD = 0.4
+SCORE_THRESHOLD = 0.45
 
 # --- Data locations ----------------------------------------------------------
 DATA_DIR = settings.data_root
