@@ -1,6 +1,8 @@
 # MARP-Guide Chatbot
+
+[![CI](https://img.shields.io/github/actions/workflow/status/Rickycg21/MARP.Guide.Y3/ci.yml?label=CI&logo=github&style=flat)](https://github.com/Rickycg21/MARP.Guide.Y3/actions/workflows/ci.yml)
+
 ### Assessment 1 – Core RAG Pipeline
-[![CI](https://img.shields.io/github/actions/workflow/status/Rickycg21/MARP.Guide.Y3/ci.yml?label=CI&logo=github&style=for-the-badge)](https://github.com/Rickycg21/MARP.Guide.Y3/actions/workflows/ci.yml)
 
 ---
 
