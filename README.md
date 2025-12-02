@@ -1,5 +1,6 @@
 # MARP-Guide Chatbot
 ### Assessment 1 – Core RAG Pipeline
+[![CI - MARP Docker Services](https://github.com/Rickycg21/MARP.Guide.Y3/actions/workflows/ci.yml/badge.svg)](https://github.com/Rickycg21/MARP.Guide.Y3/actions/workflows/ci.yml)
 
 ---
 
