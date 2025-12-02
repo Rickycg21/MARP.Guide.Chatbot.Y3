@@ -9,7 +9,7 @@
 #   - Append compact telemetry lines to /data/query_metadata.jsonl.
 # =============================================================================
 
-import os, uuid, json, time, logging, datetime as dt, asyncio
+import os, uuid, json, time, logging, asyncio
 from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, Query, HTTPException
@@ -95,7 +95,7 @@ async def publish_retrieval_completed(
         event = RetrievalCompletedEvent(
             eventType="RetrievalCompleted",
             eventId=str(uuid.uuid4()),
-            timestamp=dt.datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+            timestamp=ev.now_iso(),
             correlationId=correlation_id or str(uuid.uuid4()),
             source=SERVICE_NAME,
             version="1.0",
@@ -133,7 +133,7 @@ async def _schedule_restart():
 
 async def _on_chunks_indexed(envelope: ev.EventEnvelope, message) -> None:
     """
-    On first ChunksIndexed after startup (when we started empty), refresh client and restart once.
+    On first ChunksIndexed after startup (if we started empty), refresh client and restart once.
     """
     global _restart_scheduled
     try:

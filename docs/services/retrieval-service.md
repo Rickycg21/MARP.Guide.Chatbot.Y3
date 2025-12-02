@@ -15,7 +15,7 @@ Append a query metadata to `/data/query_metadata.jsonl` for analytics/debugging.
 | GET    | `/health` | Health check                       | 200 OK        |
 
 ## Events
-- **Consumes:** *(none)*
+- **Consumes:** `ChunksIndexed`
 - **Publishes:** `RetrievalCompleted`
 
 ## Communicates With
