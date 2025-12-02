@@ -227,6 +227,7 @@ async def search(
                         "message": "Retrieval is refreshing its index view; retry shortly.",
                     },
                 )
+        coll_count = retriever.collection_count()
     except ValueError as ve:
         raise HTTPException(400, str(ve))
     except Exception as e:
@@ -248,6 +249,7 @@ async def search(
     resp = SearchResponse(
         query_id=query_id, query=q, top_k=topK, mode=mode,
         duration_ms=elapsed_ms,
+        collection_count=coll_count,
         results=results,
     )
 
@@ -262,6 +264,7 @@ async def search(
         mode=mode,
         top_k=topK,
         retrieval_time_ms=elapsed_ms,
+        collection_count=coll_count,
         results=results,
     )
 
@@ -276,6 +279,7 @@ def _log_query_jsonl(
     mode: str,
     top_k: int,
     retrieval_time_ms: int,
+    collection_count: int,
     results: List[SearchResult],
 ) -> None:
     """
@@ -303,6 +307,7 @@ def _log_query_jsonl(
             "mode": mode,
             "top_k": top_k,
             "retrieval_time_ms": int(retrieval_time_ms or 0),
+            "collection_count": int(collection_count),
             "results": out_results,
         }
         with open("/data/query_metadata.jsonl", "a", encoding="utf-8") as f:

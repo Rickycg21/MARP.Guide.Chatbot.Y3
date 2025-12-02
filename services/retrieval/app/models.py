@@ -66,6 +66,7 @@ class SearchResponse(BaseModel):
     top_k: int = Field(..., alias="topK", ge=1, le=50)
     mode: Mode
     duration_ms: int = Field(..., alias="durationMs", ge=0)
+    collection_count: Optional[int] = Field(None, alias="collectionCount", ge=0)
     results: List[SearchResult]
 
     model_config = {"populate_by_name": True}
