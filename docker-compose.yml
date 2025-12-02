@@ -80,7 +80,6 @@ services:
       - LOG_LEVEL=INFO
       - CHROMA_DIR=/data/index
       - EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
-
     ports:
       - "5003:8000"
     volumes:
@@ -108,7 +107,7 @@ services:
       - CHROMA_DIR=/data/index
       - EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
       - CHROMA_COLLECTION=marp_docs
-
+      - RETRIEVAL_PUBLISH_EVENTS=true
     ports:
       - "5004:8000"
     volumes:
