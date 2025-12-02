@@ -9,7 +9,7 @@
 #   - Append compact telemetry lines to /data/query_metadata.jsonl.
 # =============================================================================
 
-import os, uuid, json, time, logging, datetime as dt
+import os, uuid, json, time, logging, datetime as dt, asyncio
 from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, Query, HTTPException
@@ -19,6 +19,7 @@ from starlette.middleware.cors import CORSMiddleware
 from app.retriever import Retriever
 from app.models import HealthResponse, SearchResponse, SearchResult, Scores, RetrievalResult, RetrievalPayload, RetrievalCompletedEvent
 
+from common import events as ev
 from common.config import settings
 
 # -----------------------------------------------------------------------------
@@ -31,6 +32,10 @@ PUBLISH_EVENTS = os.getenv("RETRIEVAL_PUBLISH_EVENTS", "false").lower() == "true
 EVENT_EXCHANGE = os.getenv("EVENT_EXCHANGE", "events")
 SERVICE_NAME = os.getenv("SERVICE_NAME", "retrieval-service")
 _publish = None 
+RESTART_ON_FIRST_INDEX = os.getenv("RETRIEVAL_RESTART_ON_FIRST_INDEX", "true").lower() == "true"
+_consumer_task: Optional[asyncio.Task] = None
+_restart_scheduled: bool = False
+_initial_collection_count: int = 0
 
 # -----------------------------------------------------------------------------
 # Event publishing
@@ -55,7 +60,6 @@ async def publish_retrieval_completed(
     global _publish
     try:
         if _publish is None:
-            from common import events as ev
             _publish = getattr(ev, "publish_event_async", None) or getattr(ev, "publish_event", None)
         if _publish is None:
             log.warning("No publish function found, skipping event.")
@@ -121,11 +125,46 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 
 retriever: Optional[Retriever] = None
 
+async def _schedule_restart():
+    """Exit the process so Docker restarts the container."""
+    await asyncio.sleep(0.2)
+    log.error("forcing retrieval restart to refresh index view")
+    os._exit(1)
+
+async def _on_chunks_indexed(envelope: ev.EventEnvelope, message) -> None:
+    """
+    On first ChunksIndexed after startup (when we started empty), refresh client and restart once.
+    """
+    global _restart_scheduled
+    try:
+        if retriever:
+            retriever.refresh_client()
+        if (
+            RESTART_ON_FIRST_INDEX
+            and not _restart_scheduled
+            and _initial_collection_count == 0
+        ):
+            _restart_scheduled = True
+            asyncio.create_task(_schedule_restart())
+        await message.ack()
+    except Exception:
+        await message.nack(requeue=True)
+
 @app.on_event("startup")
 async def startup():
-    """Create the Retriever using env defaults."""
+    """Create the Retriever using env defaults and subscribe to ChunksIndexed."""
     global retriever
+    global _consumer_task, _initial_collection_count
     retriever = Retriever()
+    _initial_collection_count = retriever.collection_count()
+    _consumer_task = asyncio.create_task(ev.consume("ChunksIndexed", _on_chunks_indexed))
+
+@app.on_event("shutdown")
+async def shutdown():
+    """Cancel consumer on shutdown."""
+    global _consumer_task
+    if _consumer_task:
+        _consumer_task.cancel()
 
 # -----------------------------------------------------------------------------
 # Endpoints
@@ -172,6 +211,22 @@ async def search(
         t0 = time.monotonic_ns()
         rows, _stats = await retriever.search(q=q, top_k=topK, mode=mode, document_id=documentId)
         elapsed_ms = int((time.monotonic_ns() - t0) / 1e6)
+        # If empty but the collection has items, refresh client and retry once.
+        if not rows and retriever.collection_count() > 0:
+            log.warning("empty search result with non-empty collection; refreshing client and retrying")
+            retriever.refresh_client()
+            rows, _stats = await retriever.search(q=q, top_k=topK, mode=mode, document_id=documentId)
+            if not rows and not _restart_scheduled:
+                # Return a 503 and schedule a restart to clear the stale view.
+                _restart_scheduled = True
+                asyncio.create_task(_schedule_restart())
+                return JSONResponse(
+                    status_code=503,
+                    content={
+                        "status": "refreshing",
+                        "message": "Retrieval is refreshing its index view; retry shortly.",
+                    },
+                )
     except ValueError as ve:
         raise HTTPException(400, str(ve))
     except Exception as e:
