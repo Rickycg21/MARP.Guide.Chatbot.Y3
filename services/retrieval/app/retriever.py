@@ -32,6 +32,7 @@ class Retriever:
         chroma_dir: Optional[str] = None,
         collection: Optional[str] = None,
         embedding_model: str = "all-MiniLM-L6-v2",
+        embed_fn: Optional[SentenceTransformerEmbeddingFunction] = None,
     ) -> None:
         """
         Initialize a Chroma persistent client and get/create the target collection.
@@ -58,7 +59,7 @@ class Retriever:
         )
 
         # Embedding function kept in sync with indexing-service 
-        self._embed_fn = SentenceTransformerEmbeddingFunction(
+        self._embed_fn = embed_fn or SentenceTransformerEmbeddingFunction(
             model_name=str(self.embed_model)
         )
 
@@ -69,6 +70,29 @@ class Retriever:
             metadata={"hnsw:space": "cosine"},
             embedding_function=self._embed_fn,
         )
+
+    def refresh_client(self) -> None:
+        """Drop cached client/collection so the next query opens a fresh view."""
+        self._pc = chromadb.PersistentClient(path=self.chroma_dir)
+        self._coll = self._pc.get_or_create_collection(
+            self.collection,
+            metadata={"hnsw:space": "cosine"},
+            embedding_function=self._embed_fn,
+        )
+
+    def collection_count(self) -> int:
+        """Return the current collection count using a fresh client."""
+        try:
+            pc = chromadb.PersistentClient(path=self.chroma_dir)
+            coll = pc.get_or_create_collection(
+                self.collection,
+                metadata={"hnsw:space": "cosine"},
+                embedding_function=self._embed_fn,
+            )
+            return coll.count()
+        except Exception as e:
+            log.warning("collection_count failed: %s", e)
+            return 0
 
     # ---------------------------------------------------------------------
     # Health
