@@ -1,4 +1,5 @@
-# MARP-Guide Chatbot
+# MARP-Guide Chatbot <img align="right" src="https://img.shields.io/github/actions/workflow/status/Rickycg21/MARP.Guide.Y3/ci.yml?label=CI&logo=github&style=flat-square">
+
 ### Assessment 1 – Core RAG Pipeline
 
 ---

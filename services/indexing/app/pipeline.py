@@ -1,6 +1,6 @@
 # --- Imports and setup for the indexing pipeline ---
 
-from common.events import EventEnvelope
+from common.events import EventEnvelope, publish_event, new_event
 try:
     from aio_pika.abc import AbstractIncomingMessage
 except ImportError:
@@ -12,15 +12,15 @@ import aiofiles
 from sentence_transformers import SentenceTransformer
 import re
 import chromadb
-from common.events import publish_event, new_event
 import datetime
 import json
 import tiktoken
+import os
 
 # Load the embedding model used for document chunk encoding
 model = SentenceTransformer("all-MiniLM-L6-v2")
 # Setup directory where ChromaDB will store the vector index
-INDEX_DIR = "/data/index"
+INDEX_DIR = os.getenv("INDEX_DIR", "/data/index")
 
 
 # --- Main event handler: triggered when a DocumentExtracted event is received ---
@@ -275,7 +275,6 @@ def chunk_text_semantic(
         f"total {total_tokens} tokens, avg {avg_tokens:.1f}t/chunk)"
     )
 
-    print(f"[DEBUG] Ejemplo de metadatos: {chunks[0]}")
     return chunks
 
 def generate_embeddings(chunks):
@@ -297,9 +296,13 @@ def generate_embeddings(chunks):
     print(f"[Indexing] Generated {len(chunks)} embeddings")
     return chunks
 
-# ChromaDB setup 
-client = chromadb.PersistentClient(path=INDEX_DIR)
-collection = client.get_or_create_collection("marp_docs")
+# Skip Chroma initialization during unit tests
+if os.getenv("PYTEST_DISABLE_CHROMA") == "1":
+    client = None
+    collection = None
+else:
+    client = chromadb.PersistentClient(path=INDEX_DIR)
+    collection = client.get_or_create_collection(name="marp-index")
 
 def store_embeddings(document_id: str, chunks):
 
@@ -319,12 +322,15 @@ def store_embeddings(document_id: str, chunks):
         except Exception:
             page_value = 1  
 
+        title_value = c.get("title") or ""
+        url_value = c.get("url") or ""
+
         # Metadata attached to each chunk for search and traceability
         metadatas.append({
             "document_id": c.get("document_id", document_id),
             "chunk_id": c["chunkId"],
-            "title": c.get("title"),
-            "url": c.get("url"),
+            "title": title_value,
+            "url": url_value,
             "page": page_value
         })
 
@@ -345,7 +351,7 @@ def log_index_metadata(document_id: str, chunk_count: int):
     (Saved inside the container at /data/index_metadata.jsonl)
     """
     #Path to metadata file
-    metadata_path = Path("/data/index_metadata.jsonl")
+    metadata_path = Path(os.getenv("METADATA_PATH", "/data/index_metadata.jsonl"))
 
     # Create one JSON record for this document
     record = {
