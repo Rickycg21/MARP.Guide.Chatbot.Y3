@@ -59,6 +59,7 @@ def test_log_query_jsonl_writes_line(monkeypatch, tmp_path):
         mode="semantic",
         top_k=5,
         retrieval_time_ms=12,
+        collection_count=1, 
         results=[FakeResult()],
     )
 
