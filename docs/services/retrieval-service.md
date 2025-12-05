@@ -6,7 +6,7 @@ Publish a RetrievalCompleted event with a compact summary of the results.
 Append a query metadata to `/data/query_metadata.jsonl` for analytics/debugging.
 
 ## Data Owned
-- `/data/query_metadata.jsonl` — query metadata (query_id, query_text, mode, top_k, retrieval_time_ms, results[document_id, chunk_id, page, title, url, scores{semantic, bm25, combined}])
+- `/data/query_metadata.jsonl` — query metadata (query_id, query_text, mode, top_k, retrieval_time_ms, collection_count, results[document_id, chunk_id, page, title, url, scores{semantic, bm25, combined}])
 
 ## API Endpoints
 | Method | Endpoint  | Description                        | Returns       |
@@ -15,7 +15,7 @@ Append a query metadata to `/data/query_metadata.jsonl` for analytics/debugging.
 | GET    | `/health` | Health check                       | 200 OK        |
 
 ## Events
-- **Consumes:** *(none)*
+- **Consumes:** `ChunksIndexed`
 - **Publishes:** `RetrievalCompleted`
 
 ## Communicates With
