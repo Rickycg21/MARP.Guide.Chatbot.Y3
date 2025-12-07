@@ -39,7 +39,7 @@ class Retriever:
         """
         # Resolve configuration from args or environment.
         self.chroma_dir = chroma_dir or os.getenv("CHROMA_DIR") or "/data/index"
-        self.collection = collection or os.getenv("CHROMA_COLLECTION") or "marp_docs"
+        self.collection = collection or os.getenv("CHROMA_COLLECTION") or "marp-index"
         self.embed_model = embedding_model or "all-MiniLM-L6-v2"
 
         # Hybrid weighting: alpha * semantic + (1 - alpha) * bm25
