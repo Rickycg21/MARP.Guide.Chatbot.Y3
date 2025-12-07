@@ -20,10 +20,11 @@ It does not block or interfere with the pipeline — it is fully decoupled and p
 Hybrid Search: 
 
 The Hybrid Search feature supports a hybrid mechanism that blends keyword relevance with semantic vector similarity to improve answer quality.
-At query time, the service performs:
-Semantic search via vector similarity
-Keyword search via BM25
-A weighted fusion of the two scores to produce a unified ranked result set
+- At query time, the service performs:
+- Semantic search via vector similarity.
+- Keyword search via BM25.
+- A weighted fusion of the two scores to produce a unified ranked result set.
+  
 This ensures that the system returns passages that are both lexically relevant and contextually meaningful, even when user phrasing differs from the document wording.
 
 ## 📘 Project Overview
