@@ -1,4 +1,3 @@
-
 # MARP-Guide Chatbot — Sprint 1 Retrospective
 
 This document summarizes the team’s reflection after completing **Sprint 1 (Weeks 1–5)** for the MARP-Guide project.  
