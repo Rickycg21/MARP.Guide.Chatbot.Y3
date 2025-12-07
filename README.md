@@ -42,7 +42,7 @@ Answers are retrieved from MARP PDF documents, properly cited (title + page + li
 | **Ingestion** | 5001 | Discover & download MARP PDFs | `DocumentDiscovered` | – |
 | **Extraction** | 5002 | Extract text from PDFs | `DocumentExtracted` | `DocumentDiscovered` |
 | **Indexing** | 5003 | Chunk text & create embeddings | `ChunksIndexed` | `DocumentExtracted` |
-| **Retrieval** | 5004 | Semantic search over vectors | `RetrievalCompleted` | – |
+| **Retrieval** | 5004 | Semantic search over vectors | `RetrievalCompleted` | `ChunksIndexed`  |
 | **Chat (RAG)** | 5005 | Generate answers with citations | `AnswerGenerated` | – |
 | **Monitoring** | 5006 | Aggregate metrics & health | – | All events |
 
