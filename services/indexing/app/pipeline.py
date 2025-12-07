@@ -296,13 +296,15 @@ def generate_embeddings(chunks):
     print(f"[Indexing] Generated {len(chunks)} embeddings")
     return chunks
 
+COLLECTION_NAME = os.getenv("CHROMA_COLLECTION", "marp-index")
+
 # Skip Chroma initialization during unit tests
 if os.getenv("PYTEST_DISABLE_CHROMA") == "1":
     client = None
     collection = None
 else:
     client = chromadb.PersistentClient(path=INDEX_DIR)
-    collection = client.get_or_create_collection(name="marp-index")
+    collection = client.get_or_create_collection(name=COLLECTION_NAME)
 
 def store_embeddings(document_id: str, chunks):
 
