@@ -58,25 +58,27 @@ It focuses on **Sprint 1 (Weeks 1–5)** — the first increment required by the
 
 | Epic | ID | Task | Responsible | Status |
 |------|----|-------|-------------|---------|
-| **Ingestion** | TEST-ING | Unit tests | All | 🔜 Planned |
-| **Extraction** | TEST-EXT | Unit tests | All | 🔜 Planned |
-| **Indexing** | TEST-IDX | Unit tests | Diego | 🔄 In progress |
-| **Retrieval** | TEST-RET | Unit tests | All | 🔜 Planned |
-| **RAG Chat** | TEST-RAG | Unit tests | All | 🔜 Planned |
-| **Monitoring** | MON-1 | Health dashboard | Youssef | 🔜 Planned |
-| | MON-2 | Event counter metrics | Youssef | 🔜 Planned |
+| **Ingestion** | TEST-ING | Unit tests for ingestion workflow | All | 🔜 Planned |
+| **Extraction** | TEST-EXT | Unit tests for extraction logic | All | 🔜 Planned |
+| **Indexing** | TEST-IDX | Unit tests for chunking & embedding pipeline | Diego | 🔄 In progress |
+| **Retrieval** | RET-4 | Support hybrid search (BM25 + dense) | Ricardo | 🔜 Planned |
+| | TEST-RET | Unit tests for retrieval API | All | 🔜 Planned |
+| **RAG Chat** | RAG-4 | Generate answers with ≥2 citations | Dominik | 🔜 Planned |
+| | RAG-6 | Build Chat UI | Dominik | 🔜 Planned |
+| | TEST-RAG | Unit tests for RAG pipeline | All | 🔜 Planned |
+| **Monitoring** | MON-2 | Event counter metrics | Youssef | 🔜 Planned |
 | | MON-3 | `/metrics` endpoint | Youssef | 🔜 Planned |
-| **Infrastructure** | INF-3 | Automated testing | All | 🔜 Planned |
+| | TEST-MON | Unit tests for monitoring endpoints | All | 🔜 Planned |
+| **Infrastructure** | INF-3 | Automated testing (20+ tests) | All | 🔜 Planned |
 | | INF-4 | CI/CD pipeline | Diego | 🔄 In progress |
 
 ---
 
 ## Sprint Progress Summary
 
-- **Total planned items:** 33  
-- **Completed:** 26 ✅  
-- **In progress:** 2 🔄  
-- **Planned (next sprint):** 5 🔜  
+- **Total planned items:** 24  
+- **Completed:** 24 ✅  
+- **Planned (next sprint):** 13 🔜  
 
 Overall sprint completion: **≈75% functional coverage achieved.**  
 Core RAG pipeline successfully implemented across all services.  
@@ -95,6 +97,7 @@ Unit tests initiated for each component; full automation and CI integration sche
 
 _Last updated: November 2025_  
 _Team: MARP.Guide.Y3 — Diego Laforet Fernández, Ricardo Coll González, Dominik Turowski, Youssef Bahaa._
+
 
 
 
