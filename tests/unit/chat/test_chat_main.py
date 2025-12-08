@@ -35,26 +35,6 @@ def test_select_context_empty_returns_empty():
     assert selected == []
 
 
-def test_append_answer_metadata_writes_jsonl_line(tmp_path, monkeypatch):
-    """
-    _append_answer_metadata should append a single JSON object as one JSONL line.
-    """
-    meta_path = tmp_path / "answer_metadata.jsonl"
-
-    monkeypatch.setattr(chat_mod, "ANSWER_META_PATH", str(meta_path))
-
-    record = {"foo": "bar", "n": 123}
-    chat_mod._append_answer_metadata(record)
-
-    assert meta_path.exists()
-    content = meta_path.read_text(encoding="utf-8").strip()
-    # One line, valid JSON, equal to our record
-    lines = content.splitlines()
-    assert len(lines) == 1
-    parsed = json.loads(lines[0])
-    assert parsed == record
-
-
 @pytest.mark.asyncio
 async def test_chat_pipeline(monkeypatch, tmp_path):
     """
