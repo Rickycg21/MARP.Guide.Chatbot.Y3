@@ -23,9 +23,9 @@ The entire system is now stable and ready for final assessment.
 | **Testing & Quality Assurance** | Over 20+ unit and integration tests implemented with >90% coverage |
 | **CI Automation** | GitHub Actions fully operational: installs dependencies, runs tests, and validates all services on every push. |
 | **Debugging & Stability** | Fixed issues across Retrieval, Monitoring, and Indexing. |
-| **Retrieval Improvements** | Hybrid search (BM25) implemented and tuned for better ranking accuracy. Nonsense query handling added. |
+| **Retrieval Improvements** | Hybrid search (BM25) implemented and tuned for better ranking accuracy. |
 | **Monitoring Service** | `/metrics` endpoint, event counters, and health checks completed. |
-| **Chat UI Completion** | Fully functional UI delivered, enabling end-to-end user interaction with >2 citations. |
+| **Chat UI Completion** | Fully functional UI delivered, enabling end-to-end user interaction with >2 citations. Handled graceful fallback and failure |
 | **Team Collaboration** | Consistent communication via Discord, WhatsApp and weekly in person meetings. Fast debugging cycles and shared responsibility. |
 
 ---
@@ -50,5 +50,6 @@ The entire system is now stable and ready for final assessment.
 
 _Last updated: December 2025_  
 _Team: MARP.Guide.Y3 — Diego Laforet Fernández, Ricardo Coll González, Dominik Turowski, Youssef Bahaa._
+
 
 
