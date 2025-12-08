@@ -30,7 +30,6 @@ Each item includes a short description, priority, and current status.
 | EXT-1 | Parse PDFs to text | Convert PDFs into clean, per-page text using PyPDF2/pdfplumber. | High | ✅ Done |
 | EXT-2 | Store extracted text as JSON | Save structured text and metadata for downstream services. | High | ✅ Done |
 | EXT-3 | Publish `DocumentExtracted` event | Notify Indexing service after successful extraction. | High | ✅ Done |
-| EXT-4 | Implement health endpoint | Provide `/health` for Docker Compose checks. | High | ✅ Done |
 | TEST-EXT | Unit tests for extraction logic | Validate parsing and event publication. | Medium | ✅ Done|
 
 ---
