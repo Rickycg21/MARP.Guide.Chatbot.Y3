@@ -11,7 +11,7 @@ Each item includes a short description, priority, and current status.
 
 ---
 
-## 📦 Epics & Stories
+## Epics & Stories
 
 ### EPIC 1 — Ingestion Service
 | ID | User Story / Task | Description | Priority | Status |
@@ -20,7 +20,7 @@ Each item includes a short description, priority, and current status.
 | ING-2 | Download PDFs | Fetch and store all discovered MARP PDFs locally with metadata (URL, title, date). | High | ✅ Done |
 | ING-3 | Publish `DocumentDiscovered` event | Notify the Extraction service when a new document is fetched. | High | ✅ Done |
 | ING-4 | Implement `/discover` endpoint | Allow manual triggering of discovery process via API. | High | ✅ Done |
-| TEST-ING | Unit tests for ingestion workflow | Validate `/discover` endpoint and event emission. | Medium | 🔜 Planned |
+| TEST-ING | Unit tests for ingestion workflow | Validate ingestion workflow and event emission. | Medium | ✅ Done |
 
 ---
 
@@ -30,8 +30,7 @@ Each item includes a short description, priority, and current status.
 | EXT-1 | Parse PDFs to text | Convert PDFs into clean, per-page text using PyPDF2/pdfplumber. | High | ✅ Done |
 | EXT-2 | Store extracted text as JSON | Save structured text and metadata for downstream services. | High | ✅ Done |
 | EXT-3 | Publish `DocumentExtracted` event | Notify Indexing service after successful extraction. | High | ✅ Done |
-| EXT-4 | Implement health endpoint | Provide `/health` for Docker Compose checks. | High | ✅ Done |
-| TEST-EXT | Unit tests for extraction logic | Validate parsing output and event triggering. | Medium | 🔜 Planned |
+| TEST-EXT | Unit tests for extraction logic | Validate parsing and event publication. | Medium | ✅ Done|
 
 ---
 
@@ -42,8 +41,7 @@ Each item includes a short description, priority, and current status.
 | IDX-2 | Generate embeddings | Use `sentence-transformers` to create dense vector representations. | High | ✅ Done |
 | IDX-3 | Store embeddings in ChromaDB | Save chunks + vectors with metadata. | High | ✅ Done |
 | IDX-4 | Publish `ChunksIndexed` event | Notify Retrieval service when vectors are stored. | High | ✅ Done |
-| IDX-5 | Test indexing workflow | Ensure end-to-end indexing pipeline runs correctly. | High | ✅ Done |
-| TEST-IDX | Unit tests for chunking & embedding pipeline | Cover chunking, embedding, and storage workflow. | Medium | 🔄 In progress |
+| TEST-IDX | Unit tests for chunking & embedding pipeline | Cover chunking, embedding, and storage workflow. | Medium | ✅ Done |
 
 ---
 
@@ -53,8 +51,8 @@ Each item includes a short description, priority, and current status.
 | RET-1 | Implement `/search` endpoint | Return top-k relevant chunks given a query embedding. | High | ✅ Done |
 | RET-2 | Handle metadata and ranking | Include page number, title, and URL in each result. | High | ✅ Done |
 | RET-3 | Publish `RetrievalCompleted` event | Notify Monitoring/Chat when retrieval is finished. | Medium | ✅ Done |
-| RET-4 | Support hybrid search (BM25 + dense) | Tier-2 feature for Assessment 2. | Medium | 🔜 Planned |
-| TEST-RET | Unit tests for retrieval API | Verify ranking logic and response metadata. | Medium | 🔜 Planned |
+| RET-4 | Support hybrid search (BM25) | Tier-2 feature for Assessment 2. | Medium | ✅ Done |
+| TEST-RET | Unit tests for retrieval API | Validate ranking, hybrid search and metadata. | Medium | ✅ Done |
 
 ---
 
@@ -64,19 +62,21 @@ Each item includes a short description, priority, and current status.
 | RAG-1 | Implement `/chat` endpoint | Accept a query and build the RAG pipeline response. | High | ✅ Done |
 | RAG-2 | Prompt engineering | Design LLM prompt templates ensuring citations are included. | High | ✅ Done |
 | RAG-3 | Generate answers with ≥1 citation | Assessment 1 requirement. | High | ✅ Done |
-| RAG-4 | Generate answers with ≥2 citations | Final MVP requirement. | High | 🔜 Planned |
+| RAG-4 | Generate answers with ≥2 citations | Final MVP requirement. | High | ✅ Done |
 | RAG-5 | Publish `AnswerGenerated` event | Notify Monitoring service. | Medium | ✅ Done |
-| TEST-RAG | Unit tests for RAG response builder | Cover prompt assembly and LLM call simulation. | Medium | 🔜 Planned |
+| RAG-6 | Build chat UI | Interface for sending questions and showing answers + citations. | High | ✅ Done |
+| TEST-RAG | Unit tests for RAG response builder | Test prompt assembly and RAG logic. | Medium | ✅ Done |
 
 ---
 
 ### EPIC 6 — Monitoring (Tier 1 Feature)
 | ID | User Story / Task | Description | Priority | Status |
 |----|-------------------|--------------|-----------|---------|
-| MON-1 | Health checks dashboard | Display `/health` status of all services. | High | ✅ Done |
-| MON-2 | Event counter metrics | Track number of processed events by type. | Medium | 🔜 Planned |
-| MON-3 | REST API for `/metrics` | Expose metrics for Grafana or CI integration. | Low | 🔜 Planned |
-| TEST-MON | Unit tests for monitoring endpoints | Verify health and metrics APIs. | Low | 🔜 Planned |
+| MON-1 | Service health checks | Display `/health` status of all services. | High | ✅ Done |
+| MON-2 | Event counter metrics | Track number of processed events by type. | Medium | ✅ Done |
+| MON-3 | `/metrics` endpoint| Exposes metrics in JSON | Low | ✅ Done |
+| MON-4 | `/dashboard` endpoint | Displays metrics in a web UI dashboard | Low | ✅ Done |
+| TEST-MON | Unit tests for monitoring endpoints | Test monitoring endpoints and metrics. | Low | ✅ Done|
 
 ---
 
@@ -85,20 +85,11 @@ Each item includes a short description, priority, and current status.
 |----|-------------------|--------------|-----------|---------|
 | INF-1 | Docker Compose setup | All services start and connect via `docker compose up`. | High | ✅ Done |
 | INF-2 | Implement RabbitMQ broker | Setup AMQP queues for inter-service communication. | High | ✅ Done |
-| INF-3 | Add automated tests | Minimum 10–15 unit/integration tests. | High | 🔜 Planned |
-| INF-4 | GitHub Actions CI pipeline | Run tests automatically on push. | Medium | 🔄 In progress |
-| INF-5a | Service documentation under `/docs/services` | Architecture, API specs, and event schemas. | High | ✅ Done |
-| INF-5b | Project documentation under `/docs` | Scrum artefacts, markdown deliverables, and reports. | High | ✅ Done |
-| TEST-INF | Basic service health & container tests | Smoke tests confirm Docker and RabbitMQ connectivity. | Medium | ✅ Done |
-
----
-
-### EPIC 8 — UX & Chat Interface (Tier 2 Feature)
-| ID | User Story / Task | Description | Priority | Status |
-|----|-------------------|--------------|-----------|---------|
-| UX-1 | Build chat UI (React) | Simple interface for sending questions and showing answers + citations. | High | 🔜 Planned |
-| UX-2 | Add feedback option | Allow user thumbs-up/down feedback for answers. | Low | 🔜 Planned |
-| TEST-UX | Unit tests for UI components | Validate chat input/output rendering. | Low | 🔜 Planned |
+| INF-3 | Automated testing | Add 20+ tests across all services with >80% coverage | High | ✅ Done |
+| INF-4 | GitHub Actions CI pipeline | Run tests automatically on push. | High | ✅ Done |
+| INF-5a | Service documentation | Architecture, event flow, and APIs. | High | ✅ Done |
+| INF-5b | Project documentation | Scrum artefacts + technical deliverables. | High | ✅ Done |
+| TEST-INF | Basic service health & container tests | Confirm Docker and RabbitMQ connectivity. | Medium | ✅ Done |
 
 ---
 
@@ -106,11 +97,10 @@ Each item includes a short description, priority, and current status.
 - Code implemented, reviewed, and merged into `develop` branch.  
 - Service runs in Docker Compose with health check passing.  
 - Events published and consumed successfully.  
-- Documentation updated in `/docs/`.  
-- Unit tests implemented or planned across all services.  
-- All critical tests passing (where applicable).
+- Documentation updated in `/docs/`.    
+- All tests passing in CI (where applicable).
 
 ---
 
-_Last updated: November 2025 (post–Sprint 1 review)_  
-_Team: MARP.Guide.Y3 — Diego Laforet Fernández, Ricardo Coll González, Dominik Turowski, Youssef Bahaa._
+_Last updated: December 2025 (Sprint 2 review)_  
+_Team: MARP.Guide.Y3 — Diego Laforet Fernández, Ricardo Coll González, Dominik Turowski, Youssef Mohamed._

@@ -1,4 +1,3 @@
-
 # MARP-Guide Chatbot — Sprint 1 Retrospective
 
 This document summarizes the team’s reflection after completing **Sprint 1 (Weeks 1–5)** for the MARP-Guide project.  
@@ -36,17 +35,16 @@ The full core architecture is functional and all mandatory events are implemente
 |-----------|-------------------|
 | **Testing Coverage** | Unit and integration testing were postponed to Sprint 2 to prioritize functionality. |
 | **Monitoring Dashboard** | Metrics and visual dashboards were partially implemented, requiring further refinement. |
-| **CI/CD Setup** | GitHub Actions pipeline not yet completed — test automation still manual. |
+| **CI Setup** | GitHub Actions pipeline not yet completed — test automation still manual. |
 
 ---
 ## SMART actions (TO DO)
 
-| Action | Owner | Deadline | Succes |
+| Action | Owner | Succes |
 |-------------------|----------|-----------|--------------------|
-| **Implement aditional features(Tier 1 and 2)** | Youssef and Ricardo | | Satisfies assesment description |
-| **Implement CI pipeline** | Diego | | Develop at least 10–15 unit and integration tests across services. Integrate with GitHub Actions.|
-| **Implement Chat UI** | Dominik | | Working chat UI with 90% citation accuracy |
-
+| **Implement aditional features(Tier 1 and 2)** | Youssef and Ricardo | Satisfies assesment description |
+| **Implement CI pipeline** | Diego | Develop at least 10–15 unit and integration tests across services. Integrate with GitHub Actions.|
+| **Implement Chat UI** | Dominik | Working chat UI with 90% citation accuracy |
 
 ---
 ## Summary
