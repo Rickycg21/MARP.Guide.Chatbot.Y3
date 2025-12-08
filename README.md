@@ -135,11 +135,16 @@ cd MARP.Guide.Y3
 to discover MARP PDFs & publish DocumentDiscovered event to Extraction.  
 Extraction and Indexing process run asynchronously via RabbitMQ events.  
 
-Set the model API Key with: $env:OPENROUTER_API_KEY = "(place your key between the quotation marks)"
+Wait for regular health checks to appear.
 
-Command: curl -X POST 'http://localhost:5005/chat' -H 'Content-Type: application/json' --data '{"question":"(Place your question in-between the quotation marks)","top_k":3}'
-to ask a question.  
-Chat calls Retrieval & returns an answer with ≥ 1 citation.  
+Enter "http://localhost:5005/" into a browser of your choice.
+
+Follow the intuitive UI:
+  - Place your input in the question filed.
+  - Press the "Send" button to give the question to the assistant.
+  - View your question and generated answer below.
+
+Chat calls Retrieval & returns an answer with ≥ 2 citations.  
 
 "docker compose logs -f ingestion extraction indexing retrieval chat" to view service logs.  
 
