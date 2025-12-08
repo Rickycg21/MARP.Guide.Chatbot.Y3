@@ -7,7 +7,7 @@ The sprint focused on **system stability, testing, CI automation, monitoring fea
 
 ## Sprint recap
 **Sprint Goal:**  
-> Deliver a stable, fully tested system with automated CI/CD pipelines, hybrid retrieval improvements, monitoring capabilities, and a functional Chat UI.
+> Deliver a stable, fully tested system with automated CI pipelines, hybrid retrieval improvements, monitoring capabilities, and a functional Chat UI.
 
 **Sprint Outcome:**  
 Achieved.  
@@ -50,6 +50,7 @@ The entire system is now stable and ready for final assessment.
 
 _Last updated: December 2025_  
 _Team: MARP.Guide.Y3 — Diego Laforet Fernández, Ricardo Coll González, Dominik Turowski, Youssef Bahaa._
+
 
 
 
