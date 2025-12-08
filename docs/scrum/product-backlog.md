@@ -72,10 +72,10 @@ Each item includes a short description, priority, and current status.
 ### EPIC 6 — Monitoring (Tier 1 Feature)
 | ID | User Story / Task | Description | Priority | Status |
 |----|-------------------|--------------|-----------|---------|
-| MON-1 | Health checks dashboard | Display `/health` status of all services. | High | ✅ Done |
+| MON-1 | Service health checks | Display `/health` status of all services. | High | ✅ Done |
 | MON-2 | Event counter metrics | Track number of processed events by type. | Medium | ✅ Done |
 | MON-3 | REST API for `/metrics` | Exposes metrics in JSON | Low | ✅ Done |
-| MON-4 | Dashboard endpoint | Expose metrics in dashboard | Low | ✅ Done |
+| MON-4 | Dashboard endpoint | Displays metrics in a web UI dashboard | Low | ✅ Done |
 | TEST-MON | Unit tests for monitoring endpoints | Test monitoring endpoints and metrics. | Low | ✅ Done|
 
 ---
@@ -103,4 +103,4 @@ Each item includes a short description, priority, and current status.
 ---
 
 _Last updated: December 2025 (Sprint 2 review)_  
-_Team: MARP.Guide.Y3 — Diego Laforet Fernández, Ricardo Coll González, Dominik Turowski, Youssef Bahaa._
+_Team: MARP.Guide.Y3 — Diego Laforet Fernández, Ricardo Coll González, Dominik Turowski, Youssef Mohamed._
