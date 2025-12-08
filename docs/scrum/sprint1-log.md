@@ -67,6 +67,7 @@ It focuses on **Sprint 1 (Weeks 1–5)** — the first increment required by the
 | | TEST-RAG | Unit tests for RAG pipeline | All | 🔜 Planned |
 | **Monitoring** | MON-2 | Event counter metrics | Youssef | 🔜 Planned |
 | | MON-3 | `/metrics` endpoint | Youssef | 🔜 Planned |
+| MON-4 | Dashboard endpoint | Expose metrics in dashboard | Low | 🔜 Planned |
 | | TEST-MON | Unit tests for monitoring endpoints | All | 🔜 Planned |
 | **Infrastructure** | INF-3 | Automated testing (20+ tests) | All | 🔜 Planned |
 | | INF-4 | CI/CD pipeline | Diego | 🔄 In progress |
@@ -77,7 +78,7 @@ It focuses on **Sprint 1 (Weeks 1–5)** — the first increment required by the
 
 - **Total planned items:** 23  
 - **Completed:** 23  
-- **Planned (next sprint):** 13   
+- **Planned (next sprint):** 14   
 
 Overall sprint completion: **≈60% functional coverage achieved.**  
 Core RAG pipeline successfully implemented across all services.  
@@ -96,6 +97,7 @@ Unit tests initiated for each component; full automation and CI integration sche
 
 _Last updated: November 2025_  
 _Team: MARP.Guide.Y3 — Diego Laforet Fernández, Ricardo Coll González, Dominik Turowski, Youssef Bahaa._
+
 
 
 
