@@ -85,7 +85,7 @@ Each item includes a short description, priority, and current status.
 |----|-------------------|--------------|-----------|---------|
 | INF-1 | Docker Compose setup | All services start and connect via `docker compose up`. | High | ✅ Done |
 | INF-2 | Implement RabbitMQ broker | Setup AMQP queues for inter-service communication. | High | ✅ Done |
-| INF-3 | Automated testing | Add 20+ tests across all services. | High | ✅ Done |
+| INF-3 | Automated testing | Add 20+ tests across all services with >80% coverage | High | ✅ Done |
 | INF-4 | GitHub Actions CI pipeline | Run tests automatically on push. | High | ✅ Done |
 | INF-5a | Service documentation | Architecture, event flow, and APIs. | High | ✅ Done |
 | INF-5b | Project documentation | Scrum artefacts + technical deliverables. | High | ✅ Done |
