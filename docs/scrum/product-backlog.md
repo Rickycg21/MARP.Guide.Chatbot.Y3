@@ -42,7 +42,6 @@ Each item includes a short description, priority, and current status.
 | IDX-2 | Generate embeddings | Use `sentence-transformers` to create dense vector representations. | High | ✅ Done |
 | IDX-3 | Store embeddings in ChromaDB | Save chunks + vectors with metadata. | High | ✅ Done |
 | IDX-4 | Publish `ChunksIndexed` event | Notify Retrieval service when vectors are stored. | High | ✅ Done |
-| IDX-5 | Test indexing workflow | Ensure end-to-end indexing pipeline runs correctly. | High | ✅ Done |
 | TEST-IDX | Unit tests for chunking & embedding pipeline | Cover chunking, embedding, and storage workflow. | Medium | ✅ Done |
 
 ---
