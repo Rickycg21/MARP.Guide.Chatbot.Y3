@@ -260,3 +260,66 @@ async def test_chat_llm_http_502(monkeypatch):
     assert resp.model == "n/a"
     assert resp.citations == []
 
+@pytest.mark.asyncio
+def test_select_context_limits_to_citation_limit():
+    """
+    Ensure that _select_context returns at most CITATION_LIMIT chunks and preserves order.
+    """
+    chunks = [
+        chat_mod.RetrievedChunk(text=f"chunk-{i}", score=1.0)
+        for i in range(10)
+    ]
+
+    selected = chat_mod._select_context(chunks)
+
+    assert len(selected) == chat_mod.CITATION_LIMIT
+    assert [c.text for c in selected] == [f"chunk-{i}" for i in range(chat_mod.CITATION_LIMIT)]
+
+@pytest.mark.asyncio
+async def test_llm_answer_builds_prompt_and_returns_struct(monkeypatch):
+    """
+    Verify that _llm_answer formats context, builds the system & user prompts,
+    ensures citation placeholders [1], [2], etc., and returns the expected structure.
+    HTTP call is mocked so the test does not hit OpenRouter.
+    """
+
+    # Fake chunks
+    chunks = [
+        chat_mod.RetrievedChunk(text="Alpha text", title="Doc1", score=1.0),
+        chat_mod.RetrievedChunk(text="Beta text", title="Doc2", score=1.0),
+    ]
+
+    # Fake HTTP response from OpenRouter
+    fake_json = {
+        "choices": [
+            {"message": {"content": "Final grounded answer [1] [2]"}}
+        ],
+        "usage": {"total_tokens": 42},
+        "model": "fake-llm"
+    }
+
+    async def fake_post(url, headers=None, json=None, timeout=None):
+        class Resp:
+            status_code = 200
+            def json(self, *a, **k):
+                return fake_json
+        return Resp()
+
+    class FakeClient:
+        def __init__(self, *a, **k): pass
+        async def __aenter__(self): return self
+        async def __aexit__(self, *a): pass
+        async def post(self, *a, **k): return await fake_post(*a, **k)
+
+    # Monkeypatch httpx.AsyncClient → FakeClient
+    monkeypatch.setattr("httpx.AsyncClient", FakeClient)
+
+    # Fake API key present
+    monkeypatch.setattr(chat_mod, "OPENROUTER_API_KEY", "abc123")
+
+    result = await chat_mod._llm_answer("Hello MARP?", chunks)
+
+    assert result["text"].startswith("Final grounded answer")
+    assert result["tokens_used"] == 42
+    assert result["model"] == "fake-llm"
+    assert len(result["citations"]) == 2
