@@ -34,7 +34,6 @@ It focuses on **Sprint 1 (Weeks 1–5)** — the first increment required by the
 | **Extraction** | EXT-1 | Parse PDFs into clean text | Youssef, Ricardo | ✅ | Implemented with pdfplumber |
 | | EXT-2 | Store extracted text as JSON | Youssef, Ricardo | ✅ | JSON output prepared for Indexing |
 | | EXT-3 | Publish `DocumentExtracted` event | Youssef, Ricardo | ✅ | Successfully triggers Indexing |
-| | EXT-4 | Implement `/health` endpoint | Ricardo | ✅ | Docker health checks enabled |
 | **Indexing** | IDX-1 | Implement chunking strategy | Diego | ✅ | Custom chunking (~450 tokens + overlap) |
 | | IDX-2 | Generate embeddings | Diego | ✅ | Uses Sentence-Transformers |
 | | IDX-3 | Store embeddings in ChromaDB | Diego | ✅ | Chunks stored with metadata |
@@ -76,8 +75,8 @@ It focuses on **Sprint 1 (Weeks 1–5)** — the first increment required by the
 
 ## Sprint Progress Summary
 
-- **Total planned items:** 24  
-- **Completed:** 24 ✅  
+- **Total planned items:** 23  
+- **Completed:** 23 ✅  
 - **Planned (next sprint):** 13 🔜  
 
 Overall sprint completion: **≈75% functional coverage achieved.**  
@@ -97,6 +96,7 @@ Unit tests initiated for each component; full automation and CI integration sche
 
 _Last updated: November 2025_  
 _Team: MARP.Guide.Y3 — Diego Laforet Fernández, Ricardo Coll González, Dominik Turowski, Youssef Bahaa._
+
 
 
 
