@@ -53,7 +53,7 @@ Each item includes a short description, priority, and current status.
 | RET-1 | Implement `/search` endpoint | Return top-k relevant chunks given a query embedding. | High | ✅ Done |
 | RET-2 | Handle metadata and ranking | Include page number, title, and URL in each result. | High | ✅ Done |
 | RET-3 | Publish `RetrievalCompleted` event | Notify Monitoring/Chat when retrieval is finished. | Medium | ✅ Done |
-| RET-4 | Support hybrid search (BM25 + dense) | Tier-2 feature for Assessment 2. | Medium | ✅ Done |
+| RET-4 | Support hybrid search (BM25) | Tier-2 feature for Assessment 2. | Medium | ✅ Done |
 | TEST-RET | Unit tests for retrieval API | Validate ranking, hybrid search and metadata. | Medium | ✅ Done |
 
 ---
