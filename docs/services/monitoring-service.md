@@ -14,7 +14,7 @@ It consumes all events produced by the RAG pipeline and exposes a small dashboar
 | Method | Endpoint | Description | Returns |
 |---------|-----------|--------------|----------|
 | GET | `/metrics` | Return aggregated service metrics | 200 OK + JSON |
-| GET | `/dashboard` | Simple web UI showing status per service | 200 OK + HTML |
+| GET | `/dashboard` | Simple web UI showing aggregated service metrics | 200 OK + HTML |
 | GET | `/health` | Health check | 200 OK |
 
 ## Events
