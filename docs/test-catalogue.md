@@ -153,18 +153,18 @@ The answer clearly states late penalties and extension rules and cites the corre
 
 ---
 
-## **11. What academic conduct rules apply to postgraduate assessments?**
+## **11. What academic rules apply to postgraduate assessments?**
 
 **Answer:**  
-Postgraduate assessments are governed by a set of general regulations that define the structures and processes of assessment, ensuring students demonstrate achievement for credit towards their award. These regulations cover various aspects, including the setting and approval of assessments, administration of assessment, submission deadlines, marking and moderation, and the handling of exceptional circumstances [2], [3]. Furthermore, in postgraduate research awards, assessment involves demonstrating original research contributions that are appropriate for scholarly publication, often culminating in a thesis [1].
+Postgraduate assessments are governed by several academic rules which delineate how students demonstrate their achievements. Specifically, assessment practices are regulated by the Senate, ensuring criteria are met for credit attainment in both taught and research programmes [1]. Additionally, when it comes to late submissions, if 'good cause' is considered valid, students may have their marks set aside for late submissions, allowing their work to be graded on merit [2]. Furthermore, all assessments that are worth more than 7 ½ credits must undergo marking moderation processes, which could include double marking or sampling of assessments to ensure consistency in grading [3].
 
 **References:**  
-[1] General Regulations for Assessment & Award (p.1)  
-[2] General Regulations for Assessment & Award (p.3)  
-[3] General Regulations for Assessment & Award (p.2)
+[1] General Regulations for Assessment & Award (p.2)
+[2] General Regulations for Assessment & Award (p.9)
+[3] General Regulations for Assessment & Award (p.13)
 
 **Coverage & correctness:** 
-The answer appropriately summarises MARP’s assessment framework and links to the correct general-regulation sections for overall academic conduct.
+The answer gives an accurate, MARP-grounded overview of the main academic rules for postgraduate assessments.
 
 ---
 
