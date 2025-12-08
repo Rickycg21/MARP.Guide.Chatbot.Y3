@@ -36,7 +36,7 @@ The entire system is now stable and ready for final assessment.
 |-----------|--------|
 | **Initial Test Failures** | Several tests failed due to import collisions, filesystem paths, and event mocks. Required multiple iterations to stabilise. |
 | **CI Environment Differences** | GitHub Actions runners behaved differently from local Docker runs (missing models, dependency caching, path issues). |
-| **Time Spent Debugging** | Significant time was invested in fixing Retrieval hybrid logic, Monitoring JSON outputs, and PYTHONPATH errors. |
+| **Time Spent Debugging** | Significant time was invested in fixing Retrieval hybrid logic, and citation page number correctness. |
 
 ---
 
@@ -50,6 +50,7 @@ The entire system is now stable and ready for final assessment.
 
 _Last updated: December 2025_  
 _Team: MARP.Guide.Y3 — Diego Laforet Fernández, Ricardo Coll González, Dominik Turowski, Youssef Bahaa._
+
 
 
 
