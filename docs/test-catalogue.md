@@ -159,12 +159,12 @@ The answer clearly states late penalties and extension rules and cites the corre
 Postgraduate assessments are governed by a set of general regulations that define the structures and processes of assessment, ensuring students demonstrate achievement for credit towards their award. These regulations cover various aspects, including the setting and approval of assessments, administration of assessment, submission deadlines, marking and moderation, and the handling of exceptional circumstances [2], [3]. Furthermore, in postgraduate research awards, assessment involves demonstrating original research contributions that are appropriate for scholarly publication, often culminating in a thesis [1].
 
 **References:**  
-[1] General Regulations for Assessment & Award (p.0)  
-[2] General Regulations for Assessment & Award (p.2)  
-[3] General Regulations for Assessment & Award (p.1)
+[1] General Regulations for Assessment & Award (p.1)  
+[2] General Regulations for Assessment & Award (p.3)  
+[3] General Regulations for Assessment & Award (p.2)
 
 **Coverage & correctness:** 
-The answer appropriately summarises MARP’s assessment framework and links to the correct general-regulation sections for overall academic conduct, with only a small inconsistency in the page numbering (p.0), due to the source lacking a title page like other MARP PDFs.
+The answer appropriately summarises MARP’s assessment framework and links to the correct general-regulation sections for overall academic conduct.
 
 ---
 
@@ -179,7 +179,7 @@ If academic misconduct is found, the appeals against misconduct outcomes are rou
 [3] General Regulations for Assessment & Award (p.8)
 
 **Coverage & correctness:** 
-The answer correctly identifies the Student Casework Review Process and departmental role in penalties, with citations covering changes, study regulations, and sanctions.
+The answer correctly identifies the Student Casework Review Process and departmental role in penalties, with citations covering changes, study regulations, and sanctions, with only a small inconsistency in the page numbering (p.0), due to the source lacking a title page like other MARP PDFs.
 
 ---
 
