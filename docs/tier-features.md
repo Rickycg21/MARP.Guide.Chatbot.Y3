@@ -19,15 +19,13 @@ It consumes all events emitted across the pipeline—`DocumentDiscovered`, `Docu
 
 - **Latency Measurement**
   - Measures round-trip latency for retrieval requests and chat responses.  
-  - Supports simple SLA or performance-trend observation.
 
 - **Health Observation via Event Heartbeats**
   - Infers service health based on incoming events’ `source` fields.  
   - Detects when a pipeline stage becomes silent or falls behind.
 
 - **Lightweight Dashboard**
-  - Exposes a minimal HTML dashboard showing counters, charts, and status indicators.  
-  - Intended for demonstration and teaching, not enterprise-grade monitoring.
+  - Exposes a minimal HTML dashboard showing counters, charts, and status indicators.
 
 ### Architecture Notes
 
