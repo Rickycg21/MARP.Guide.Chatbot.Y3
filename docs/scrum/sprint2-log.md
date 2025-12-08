@@ -31,7 +31,7 @@ It focuses on **Sprint 2 (Weeks 6–10)** — the second increment required by t
 | **Ingestion** | TEST-ING | Unit tests for ingestion workflow | Diego | ✅ | Tests for URL discovery, download stubs, and event emission |
 | **Extraction** | TEST-EXT | Unit tests for extraction logic | Diego | ✅ | Validates text extraction + event publication |
 | **Indexing** | TEST-IDX | Unit tests for chunking & embedding pipeline | Diego | ✅ | Added deterministic chunk-ID tests and embedding mocks |
-| **Retrieval** | RET-4 | Fix hybrid scoring formula | Ricardo | ✅ | Balanced dense + BM25 weighting for more accurate ranking |
+| **Retrieval** | RET-4 | 	Support hybrid search (BM25)| Ricardo | ✅ | Balanced dense + BM25 weighting for more accurate ranking |
 | | TEST-RET | Unit tests for retrieval API | Diego | ✅ | Included tests for hybrid search and ranking behaviour |
 | **RAG Chat** | RAG-4 | Answers with ≥2 citations | Dominik | ✅ | Final MVP requirement achieved |
 | | RAG-6 | Build Chat UI | Dominik | ✅ | Interface for querying MARP with citations |
@@ -73,3 +73,4 @@ Overall sprint completion: **System fully stable, tested, monitored, and ready f
 
 _Last updated: December 2025_  
 _Team: MARP.Guide.Y3 — Diego Laforet Fernández, Ricardo Coll González, Dominik Turowski, Youssef Bahaa._
+
