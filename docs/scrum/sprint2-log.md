@@ -37,7 +37,8 @@ It focuses on **Sprint 2 (Weeks 6–10)** — the second increment required by t
 | | RAG-6 | Build Chat UI | Dominik | ✅ | Interface for querying MARP with citations |
 | | TEST-RAG | Unit tests for RAG builder | Diego | ✅ | Covers prompt assembly, context handling, and mock LLM output |
 | **Monitoring** | MON-2 | Event counter metrics | Youssef | ✅ | Tracks event totals per service |
-| | MON-3 | `/metrics` endpoint | Youssef | ✅ | Exposes counters in JSON |
+| | MON-3 | `/metrics` endpoint | Youssef | ✅ | Exposes metrics in JSON |
+| MON-4 | Dashboard endpoint | Expose metrics in dashboard | Low | ✅ Done |
 | | TEST-MON | Monitoring endpoint tests | Diego | ✅ | Validates health + metrics JSON structure |
 | **Infrastructure** | INF-3 | Automated testing | Diego | ✅ | Achieved 20+ tests across all services |
 | | INF-4 | GitHub Actions CI pipeline | Diego | ✅ | CI now builds images, installs deps, runs tests successfully |
@@ -46,8 +47,8 @@ It focuses on **Sprint 2 (Weeks 6–10)** — the second increment required by t
 
 ## Sprint Progress Summary
 
-- **Total planned items:** 13  
-- **Completed:** 13 (100%)  
+- **Total planned items:** 14 
+- **Completed:** 14 (100%)  
 - All carry-over tasks from Sprint 1 successfully finished.  
 - CI pipeline fully implemented and running for all pushes.  
 - Monitoring metrics and JSONL logging now provide system observability.  
@@ -73,6 +74,7 @@ Overall sprint completion: **System fully stable, tested, monitored, and ready f
 
 _Last updated: December 2025_  
 _Team: MARP.Guide.Y3 — Diego Laforet Fernández, Ricardo Coll González, Dominik Turowski, Youssef Bahaa._
+
 
 
 
