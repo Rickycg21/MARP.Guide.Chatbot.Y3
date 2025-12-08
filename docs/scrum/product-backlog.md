@@ -74,8 +74,8 @@ Each item includes a short description, priority, and current status.
 |----|-------------------|--------------|-----------|---------|
 | MON-1 | Service health checks | Display `/health` status of all services. | High | ✅ Done |
 | MON-2 | Event counter metrics | Track number of processed events by type. | Medium | ✅ Done |
-| MON-3 | REST API for `/metrics` | Exposes metrics in JSON | Low | ✅ Done |
-| MON-4 | Dashboard endpoint | Displays metrics in a web UI dashboard | Low | ✅ Done |
+| MON-3 | `/metrics` endpoint| Exposes metrics in JSON | Low | ✅ Done |
+| MON-4 | `/dashboard` endpoint | Displays metrics in a web UI dashboard | Low | ✅ Done |
 | TEST-MON | Unit tests for monitoring endpoints | Test monitoring endpoints and metrics. | Low | ✅ Done|
 
 ---
