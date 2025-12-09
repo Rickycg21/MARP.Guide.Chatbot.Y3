@@ -17,7 +17,15 @@ Monitoring communicates only via AMQP (RabbitMQ) and does not call any REST endp
 It does not block or interfere with the pipeline — it is fully decoupled and purely observational.  
 
 ## Tier 2 Choice:
-Hybrid Search
+Hybrid Search: 
+
+The Hybrid Search feature supports a hybrid mechanism that blends keyword relevance with semantic vector similarity to improve answer quality.
+- At query time, the service performs:
+- Semantic search via vector similarity.
+- Keyword search via BM25.
+- A weighted fusion of the two scores to produce a unified ranked result set.
+  
+This ensures that the system returns passages that are both lexically relevant and contextually meaningful, even when user phrasing differs from the document wording.
 
 ## 📘 Project Overview
 The **MARP-Guide Chatbot** is a networked microservices system that answers questions about Lancaster University’s Manual of Academic Regulations and Procedures (MARP).
@@ -34,7 +42,7 @@ Answers are retrieved from MARP PDF documents, properly cited (title + page + li
 | **Ingestion** | 5001 | Discover & download MARP PDFs | `DocumentDiscovered` | – |
 | **Extraction** | 5002 | Extract text from PDFs | `DocumentExtracted` | `DocumentDiscovered` |
 | **Indexing** | 5003 | Chunk text & create embeddings | `ChunksIndexed` | `DocumentExtracted` |
-| **Retrieval** | 5004 | Semantic search over vectors | `RetrievalCompleted` | – |
+| **Retrieval** | 5004 | Semantic search over vectors | `RetrievalCompleted` | `ChunksIndexed`  |
 | **Chat (RAG)** | 5005 | Generate answers with citations | `AnswerGenerated` | – |
 | **Monitoring** | 5006 | Aggregate metrics & health | – | All events |
 
@@ -127,11 +135,16 @@ cd MARP.Guide.Y3
 to discover MARP PDFs & publish DocumentDiscovered event to Extraction.  
 Extraction and Indexing process run asynchronously via RabbitMQ events.  
 
-Set the model API Key with: $env:OPENROUTER_API_KEY = "(place your key between the quotation marks)"
+Wait for regular health checks to appear.
 
-Command: curl -X POST 'http://localhost:5005/chat' -H 'Content-Type: application/json' --data '{"question":"(Place your question in-between the quotation marks)","top_k":3}'
-to ask a question.  
-Chat calls Retrieval & returns an answer with ≥ 1 citation.  
+Enter "http://localhost:5005/" into a browser of your choice.
+
+Follow the intuitive UI:
+  - Place your input in the question filed.
+  - Press the "Send" button to give the question to the assistant.
+  - View your question and generated answer below.
+
+Chat calls Retrieval & returns an answer with ≥ 2 citations.  
 
 "docker compose logs -f ingestion extraction indexing retrieval chat" to view service logs.  
 
@@ -206,7 +219,7 @@ Open RabbitMQ’s web UI at "http://localhost:15672" to view live event publicat
 
 "curl http://localhost:5004/health" to check health.  
 
-"GET /search?q=...&top_k=..." to run a search. (Example: "curl -s "http://localhost:5004/search?q=late%20submission&topK=5&mode=semantic" | jq")
+"curl -s "http://localhost:5004/search?q=...topK=...&mode=..." to run a search. (Example: "curl -s "http://localhost:5004/search?q=late%20submission&topK=5&mode=hybrid")
 
 "docker compose down" to stop running containers.   
 
