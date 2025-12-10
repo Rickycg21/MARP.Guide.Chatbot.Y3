@@ -93,7 +93,8 @@ flowchart LR
 
 ### Changes since Sprint 1
 
-Monitoring service now consumes all events instead of just RetrievalCompleted and AnswerGenerated.  
+- The Retrieval Service now consumes ChunksIndexed events from the Indexing Service.  
+- The Monitoring service now consumes all events instead of just RetrievalCompleted and AnswerGenerated.    
 
 ---
 
