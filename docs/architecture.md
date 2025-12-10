@@ -86,8 +86,8 @@ flowchart LR
   X -->|"ChunksIndexed (event)"| M
   C <-->|"HTTP /search"| R
   U -->|"HTTP POST /chat"| C
-  C -->|"AnswerGenerated (event)"| M
   R -->|"RetrievalCompleted (event)"| M
+  C -->|"AnswerGenerated (event)"| M
 
   %% Messaging & storage
   I -. "AMQP" .-> Q
