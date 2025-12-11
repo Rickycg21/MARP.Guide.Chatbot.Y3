@@ -60,7 +60,7 @@ _chat_requests: int = 0
 _last_seen: Dict[str, str] = {}  # service_name -> last event timestamp
 
 # -----------------------------------------------------------------------------
-# Startup helpers
+# Startup helper
 # -----------------------------------------------------------------------------
 async def startup_metrics() -> None:
     """
@@ -238,7 +238,6 @@ async def get_metrics_snapshot() -> MetricsSnapshot:
 async def render_dashboard_html() -> str:
     """
     Render a small HTML dashboard using the current metrics snapshot.
-    This is intentionally simple and dependency-free (no templates).
     """
     snap = await get_metrics_snapshot()
 

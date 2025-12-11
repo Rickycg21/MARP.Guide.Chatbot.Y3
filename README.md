@@ -73,11 +73,12 @@ flowchart LR
   I -->|"DocumentDiscovered (event)"| M
   E -->|"DocumentExtracted (event)"| X
   E -->|"DocumentExtracted (event)"| M
+  X -->|"ChunksIndexed (event)"| R
   X -->|"ChunksIndexed (event)"| M
   C <-->|"HTTP /search"| R
   U -->|"HTTP POST /chat"| C
-  C -->|"AnswerGenerated (event)"| M
   R -->|"RetrievalCompleted (event)"| M
+  C -->|"AnswerGenerated (event)"| M
 
   %% Messaging & storage
   I -. "AMQP" .-> Q
@@ -89,6 +90,11 @@ flowchart LR
   X -. "store/load" .- V
   R -. "query" .- V
 ```
+
+### Changes since Sprint 1
+
+- The Retrieval Service now consumes ChunksIndexed events from the Indexing Service.  
+- The Monitoring service now consumes all events instead of just RetrievalCompleted and AnswerGenerated.    
 
 ---
 
@@ -226,14 +232,29 @@ Open RabbitMQ’s web UI at "http://localhost:15672" to view live event publicat
 ---
 
 ### Tests for Chat service
-"docker compose up --build rabbitmq chat" to build & start Retrieval.  
+"docker compose up --build rabbitmq chat" to build & start Chat.  
 
-"docker compose logs -f chat" to view Retrieval logs.  
+"docker compose logs -f chat" to view Chat logs.  
 
 "curl http://localhost:5005/health" to check health.  
 
 Command: curl -X POST 'http://localhost:5005/chat' -H 'Content-Type: application/json' --data '{"question":"(Place your question in-between the quotation marks)","top_k":3}'
 to ask a question.
+
+"docker compose down" to stop running containers.
+
+---
+
+### Tests for Monitoring service
+"docker compose up --build rabbitmq monitoring" to build & start Monitoring.
+
+"docker compose logs -f monitoring" to view Monitoring logs
+
+"curl http://localhost:5006/health" to check health.  
+
+"curl http://localhost:5006/metrics" to return the current metrics snapshot as JSON. 
+
+"http://localhost:5006/dashboard" or "http://localhost:5006/" on a browser to render the HTML monitoring dashboard.
 
 "docker compose down" to stop running containers.
 
