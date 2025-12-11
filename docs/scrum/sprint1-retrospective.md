@@ -1,23 +1,22 @@
-
-# 🔁 MARP-Guide Chatbot — Sprint 1 Retrospective
+# MARP-Guide Chatbot — Sprint 1 Retrospective
 
 This document summarizes the team’s reflection after completing **Sprint 1 (Weeks 1–5)** for the MARP-Guide project.  
 The sprint focused on building the **Core RAG Pipeline** — delivering a working end-to-end system (Ingestion → Extraction → Indexing → Retrieval → Chat) with event-driven communication and Dockerized deployment.
 
 ---
 
-## 🧭 Sprint Recap
+## Sprint recap
 **Sprint Goal:**  
 > Deliver a functional, containerized RAG pipeline capable of producing answers with at least one citation,  
 > fully integrated across microservices using HTTP and RabbitMQ.
 
 **Sprint Outcome:**  
-✅ Achieved.  
+Achieved.  
 The full core architecture is functional and all mandatory events are implemented and exchanged successfully between services.  
 
 ---
 
-## ✅ Well done
+## What went well
 
 | Category | Notes |
 |-----------|-------|
@@ -30,31 +29,27 @@ The full core architecture is functional and all mandatory events are implemente
 
 ---
 
-## ⚠️ Issues
+## What didn´t go well
 
-| Category | Issues Encountered |
+| Category | Notes |
 |-----------|-------------------|
 | **Testing Coverage** | Unit and integration testing were postponed to Sprint 2 to prioritize functionality. |
 | **Monitoring Dashboard** | Metrics and visual dashboards were partially implemented, requiring further refinement. |
-| **CI/CD Setup** | GitHub Actions pipeline not yet completed — test automation still manual. |
+| **CI Setup** | GitHub Actions pipeline not yet completed — test automation still manual. |
 
 ---
+## SMART actions (TO DO)
 
-## 🚀 To do Next Sprint
-
-| Improvement Area | Action Plan |
-|-------------------|-------------|
-| **Testing Automation** | Develop at least 10–15 unit and integration tests across services. Integrate with GitHub Actions. |
-| **Monitoring & Metrics** | Finalize `/metrics` endpoint and event counter dashboard for Assessment 2. |
-| **UI Development** | Begin work on the Chat Frontend (Tier 2 feature). |
-| **Hybrid Search Feature** | Implement BM25 + dense retrieval fusion for higher precision in answers. |
-| **Continuous Integration** | Ensure `docker compose up` and tests run automatically after each push. |
+| Action | Owner | Succes |
+|-------------------|----------|-----------|--------------------|
+| **Implement aditional features(Tier 1 and 2)** | Youssef and Ricardo | Satisfies assesment description |
+| **Implement CI pipeline** | Diego | Develop at least 10–15 unit and integration tests across services. Integrate with GitHub Actions.|
+| **Implement Chat UI** | Dominik | Working chat UI with 90% citation accuracy |
 
 ---
+## Summary
 
-## 🏁 Summary
-
-- **Sprint Success:** ✅ Core RAG pipeline delivered and integrated.  
+- **Sprint Success:** Core RAG pipeline delivered and integrated.  
 - **Pending Tasks:** Testing, CI/CD setup, Monitoring dashboard (Sprint 2).  
 - **Team Work:** High — confident for Sprint 2 delivery and good communication between members.  
 

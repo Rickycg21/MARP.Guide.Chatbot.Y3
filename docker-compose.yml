@@ -79,6 +79,7 @@ services:
       - DATA_ROOT=/data
       - LOG_LEVEL=INFO
       - CHROMA_DIR=/data/index
+      - CHROMA_COLLECTION=marp-index
       - EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
     ports:
       - "5003:8000"
@@ -105,7 +106,8 @@ services:
       - DATA_ROOT=/data
       - LOG_LEVEL=INFO
       - CHROMA_DIR=/data/index
-      - CHROMA_COLLECTION=marp_docs
+      - EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+      - CHROMA_COLLECTION=marp-index
       - RETRIEVAL_PUBLISH_EVENTS=true
     ports:
       - "5004:8000"
@@ -132,7 +134,8 @@ services:
       - DATA_ROOT=/data
       - LOG_LEVEL=INFO
       - ANSWERS_FILE=/data/answer_metadata.jsonl
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      #- OPENROUTER_API_KEY=${OPENROUTER_API_KEY} # If we decide to keep the key a seceret
+      - OPENROUTER_API_KEY=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
       - OPENROUTER_MODEL=openai/gpt-4o-mini
       - RETRIEVAL_URL=http://retrieval:8000
     ports:

@@ -1,15 +1,6 @@
-# MARP-Guide Chatbot
-### Assessment 1 – Core RAG Pipeline
+# MARP-Guide Chatbot <img align="right" src="https://img.shields.io/github/actions/workflow/status/Rickycg21/MARP.Guide.Y3/ci.yml?label=CI&logo=github&style=flat-square">
 
----
-
-## Tier 1 Choice:
-Basic Monitoring Dashboard
-
-## Tier 2 Choice:
-Hybrid Search
-
-## 📘 Project Overview
+## Project Overview
 The **MARP-Guide Chatbot** is a networked microservices system that answers questions about Lancaster University’s Manual of Academic Regulations and Procedures (MARP).
 Answers are retrieved from MARP PDF documents, properly cited (title + page + link), and generated through a Retrieval-Augmented Generation (RAG) pipeline.
 
@@ -24,9 +15,9 @@ Answers are retrieved from MARP PDF documents, properly cited (title + page + li
 | **Ingestion** | 5001 | Discover & download MARP PDFs | `DocumentDiscovered` | – |
 | **Extraction** | 5002 | Extract text from PDFs | `DocumentExtracted` | `DocumentDiscovered` |
 | **Indexing** | 5003 | Chunk text & create embeddings | `ChunksIndexed` | `DocumentExtracted` |
-| **Retrieval** | 5004 | Semantic search over vectors | `RetrievalCompleted` | `ChunksIndexed` |
+| **Retrieval** | 5004 | Semantic search over vectors | `RetrievalCompleted` | `ChunksIndexed`  |
 | **Chat (RAG)** | 5005 | Generate answers with citations | `AnswerGenerated` | – |
-| **Monitoring** | 5006 | Aggregate metrics & health | – | `RetrievalCompleted`, `AnswerGenerated` |
+| **Monitoring** | 5006 | Aggregate metrics & health | – | All events |
 
 ---
 
@@ -45,19 +36,22 @@ flowchart LR
     M[Monitoring :5006]
   end
 
-  subgraph Infra
+  subgraph Infrastructure
     Q[(RabbitMQ 5672/15672)]
     V[(Vector DB)]
   end
 
   %% Pipeline edges
   I -->|"DocumentDiscovered (event)"| E
+  I -->|"DocumentDiscovered (event)"| M
   E -->|"DocumentExtracted (event)"| X
+  E -->|"DocumentExtracted (event)"| M
   X -->|"ChunksIndexed (event)"| R
+  X -->|"ChunksIndexed (event)"| M
   C <-->|"HTTP /search"| R
   U -->|"HTTP POST /chat"| C
-  C -->|"AnswerGenerated (event)"| M
   R -->|"RetrievalCompleted (event)"| M
+  C -->|"AnswerGenerated (event)"| M
 
   %% Messaging & storage
   I -. "AMQP" .-> Q
@@ -69,6 +63,36 @@ flowchart LR
   X -. "store/load" .- V
   R -. "query" .- V
 ```
+
+### Changes since Sprint 1
+
+- The Retrieval Service now consumes ChunksIndexed events from the Indexing Service.  
+- The Monitoring service now consumes all events instead of just RetrievalCompleted and AnswerGenerated.    
+
+---
+
+## Tier 1 Additional Feature:
+Basic Monitoring Dashboard:
+
+The Monitoring Service is a standalone microservice that passively listens to all events emitted by the pipeline.  
+It maintains lightweight operational metrics including:  
+Per-event counts (documents discovered, extracted, indexed; queries run; answers generated)  
+Average latency for retrieval and chat events  
+Service health inferred from event heartbeats (based on event source field)  
+A simple HTML dashboard for demonstration  
+Monitoring communicates only via AMQP (RabbitMQ) and does not call any REST endpoint.  
+It does not block or interfere with the pipeline — it is fully decoupled and purely observational.  
+
+## Tier 2 Additional Feature:
+Hybrid Search: 
+
+The Hybrid Search feature supports a hybrid mechanism that blends keyword relevance with semantic vector similarity to improve answer quality.
+- At query time, the service performs:
+- Semantic search via vector similarity.
+- Keyword search via BM25.
+- A weighted fusion of the two scores to produce a unified ranked result set.
+  
+This ensures that the system returns passages that are both lexically relevant and contextually meaningful, even when user phrasing differs from the document wording.
 
 ---
 
@@ -87,8 +111,9 @@ Before running the MARP-Guide Chatbot system, ensure the following are installed
 ---
 
 ### Clone Repository
-"git clone https://github.com/Rickycg21/MARP.Guide.Y3.gitmarp-guide.git"  
-"cd Rickycg21/MARP.Guide.Y3.gitmarp-guide"  
+git clone https://github.com/Rickycg21/MARP.Guide.Y3.gitmarp-guide.git  
+
+cd MARP.Guide.Y3  
 
 ---
 
@@ -114,11 +139,16 @@ Before running the MARP-Guide Chatbot system, ensure the following are installed
 to discover MARP PDFs & publish DocumentDiscovered event to Extraction.  
 Extraction and Indexing process run asynchronously via RabbitMQ events.  
 
-Set the model API Key with: $env:OPENROUTER_API_KEY = "(place your key between the quotation marks)"
+Wait for regular health checks to appear.
 
-Command: curl -X POST 'http://localhost:5005/chat' -H 'Content-Type: application/json' --data '{"question":"(Place your question in-between the quotation marks)","top_k":3}'
-to ask a question.  
-Chat calls Retrieval & returns an answer with ≥ 1 citation.  
+Enter "http://localhost:5005/" into a browser of your choice.
+
+Follow the intuitive UI:
+  - Place your input in the question filed.
+  - Press the "Send" button to give the question to the assistant.
+  - View your question and generated answer below.
+
+Chat calls Retrieval & returns an answer with ≥ 2 citations.  
 
 "docker compose logs -f ingestion extraction indexing retrieval chat" to view service logs.  
 
@@ -126,8 +156,12 @@ All data is stored under /data/ (volume mounted by Docker).
 
 Open RabbitMQ’s web UI at "http://localhost:15672" to view live event publication.  
 
+---
+
 ### Stop
 "docker compose down" to stop all running containers.  
+
+---
 
 ### Tests for Ingestion service
 "docker compose up --build rabbitmq ingestion" to build & start Ingestion.
@@ -189,16 +223,16 @@ Open RabbitMQ’s web UI at "http://localhost:15672" to view live event publicat
 
 "curl http://localhost:5004/health" to check health.  
 
-"GET /search?q=...&top_k=..." to run a search. (Example: "curl -s "http://localhost:5004/search?q=late%20submission&topK=5&mode=semantic" | jq")
+"curl -s "http://localhost:5004/search?q=...topK=...&mode=..." to run a search. (Example: "curl -s "http://localhost:5004/search?q=late%20submission&topK=5&mode=hybrid")
 
 "docker compose down" to stop running containers.   
 
 ---
 
 ### Tests for Chat service
-"docker compose up --build rabbitmq chat" to build & start Retrieval.  
+"docker compose up --build rabbitmq chat" to build & start Chat.  
 
-"docker compose logs -f chat" to view Retrieval logs.  
+"docker compose logs -f chat" to view Chat logs.  
 
 "curl http://localhost:5005/health" to check health.  
 
@@ -209,7 +243,22 @@ to ask a question.
 
 ---
 
-## 🧠 Technology Stack Overview
+### Tests for Monitoring service
+"docker compose up --build rabbitmq monitoring" to build & start Monitoring.
+
+"docker compose logs -f monitoring" to view Monitoring logs
+
+"curl http://localhost:5006/health" to check health.  
+
+"curl http://localhost:5006/metrics" to return the current metrics snapshot as JSON. 
+
+"http://localhost:5006/dashboard" or "http://localhost:5006/" on a browser to render the HTML monitoring dashboard.
+
+"docker compose down" to stop running containers.
+
+---
+
+## Technology Stack Overview
 
 Our MARP-Guide RAG Chatbot is a **Python-based microservices system**.
 
