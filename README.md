@@ -1,33 +1,6 @@
 # MARP-Guide Chatbot <img align="right" src="https://img.shields.io/github/actions/workflow/status/Rickycg21/MARP.Guide.Y3/ci.yml?label=CI&logo=github&style=flat-square">
 
-### Assessment 1 – Core RAG Pipeline
-
----
-
-## Tier 1 Choice:
-Basic Monitoring Dashboard:
-
-The Monitoring Service is a standalone microservice that passively listens to all events emitted by the pipeline.  
-It maintains lightweight operational metrics including:  
-Per-event counts (documents discovered, extracted, indexed; queries run; answers generated)  
-Average latency for retrieval and chat events  
-Service health inferred from event heartbeats (based on event source field)  
-A simple HTML dashboard for demonstration  
-Monitoring communicates only via AMQP (RabbitMQ) and does not call any REST endpoint.  
-It does not block or interfere with the pipeline — it is fully decoupled and purely observational.  
-
-## Tier 2 Choice:
-Hybrid Search: 
-
-The Hybrid Search feature supports a hybrid mechanism that blends keyword relevance with semantic vector similarity to improve answer quality.
-- At query time, the service performs:
-- Semantic search via vector similarity.
-- Keyword search via BM25.
-- A weighted fusion of the two scores to produce a unified ranked result set.
-  
-This ensures that the system returns passages that are both lexically relevant and contextually meaningful, even when user phrasing differs from the document wording.
-
-## 📘 Project Overview
+## Project Overview
 The **MARP-Guide Chatbot** is a networked microservices system that answers questions about Lancaster University’s Manual of Academic Regulations and Procedures (MARP).
 Answers are retrieved from MARP PDF documents, properly cited (title + page + link), and generated through a Retrieval-Augmented Generation (RAG) pipeline.
 
@@ -95,6 +68,31 @@ flowchart LR
 
 - The Retrieval Service now consumes ChunksIndexed events from the Indexing Service.  
 - The Monitoring service now consumes all events instead of just RetrievalCompleted and AnswerGenerated.    
+
+---
+
+## Tier 1 Additional Feature:
+Basic Monitoring Dashboard:
+
+The Monitoring Service is a standalone microservice that passively listens to all events emitted by the pipeline.  
+It maintains lightweight operational metrics including:  
+Per-event counts (documents discovered, extracted, indexed; queries run; answers generated)  
+Average latency for retrieval and chat events  
+Service health inferred from event heartbeats (based on event source field)  
+A simple HTML dashboard for demonstration  
+Monitoring communicates only via AMQP (RabbitMQ) and does not call any REST endpoint.  
+It does not block or interfere with the pipeline — it is fully decoupled and purely observational.  
+
+## Tier 2 Additional Feature:
+Hybrid Search: 
+
+The Hybrid Search feature supports a hybrid mechanism that blends keyword relevance with semantic vector similarity to improve answer quality.
+- At query time, the service performs:
+- Semantic search via vector similarity.
+- Keyword search via BM25.
+- A weighted fusion of the two scores to produce a unified ranked result set.
+  
+This ensures that the system returns passages that are both lexically relevant and contextually meaningful, even when user phrasing differs from the document wording.
 
 ---
 
@@ -260,7 +258,7 @@ to ask a question.
 
 ---
 
-## 🧠 Technology Stack Overview
+## Technology Stack Overview
 
 Our MARP-Guide RAG Chatbot is a **Python-based microservices system**.
 
